@@ -22,6 +22,11 @@ const eventSchema = new mongoose.Schema({
     required: true
   },
 
+  imageUrl: {
+    type: String,
+    default: ""
+  },
+
   totalSeats: {
     type: Number,
     required: true

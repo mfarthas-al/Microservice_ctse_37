@@ -4,13 +4,14 @@ exports.createEvent = async (req, res) => {
 
   try {
 
-    const { title, description, date, location, totalSeats } = req.body
+    const { title, description, date, location, totalSeats, imageUrl } = req.body
 
     const event = new Event({
       title,
       description,
       date,
       location,
+      imageUrl,
       totalSeats,
       availableSeats: totalSeats
     })

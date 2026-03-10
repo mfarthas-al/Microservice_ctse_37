@@ -17,6 +17,11 @@ type:Number,
 required:true
 },
 
+seatNumbers:{
+type:[Number],
+default:[]
+},
+
 status:{
 type:String,
 default:"BOOKED"

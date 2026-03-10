@@ -10,4 +10,12 @@ const getEventById = async (eventId) => {
 
 }
 
-module.exports = { getEventById }
+const updateEventById = async (eventId, payload) => {
+
+  const response = await axios.put(`${EVENT_SERVICE_URL}/api/events/${eventId}`, payload)
+
+  return response.data
+
+}
+
+module.exports = { getEventById, updateEventById }

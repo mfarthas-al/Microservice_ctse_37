@@ -1,11 +1,33 @@
 import React, { useEffect, useState } from "react";
-import { getEvents, createEvent, deleteEvent } from "../services/eventService";
-import { getBookings, deleteBooking } from "../services/bookingService";
+import {
+  createEvent,
+  deleteEvent,
+  getEvents,
+  uploadEventImage,
+} from "../services/eventService";
+import {
+  deleteBooking,
+  getBannerImage,
+  getBookings,
+  updateBannerImage,
+  uploadBannerImage,
+} from "../services/bookingService";
+import { deleteReview, getReviews } from "../services/reviewService";
+import { getUsers, updateUser } from "../services/userService";
 
 function AdminPage({ onBack }) {
-
+  const [activeService, setActiveService] = useState("events");
   const [events, setEvents] = useState([]);
   const [bookings, setBookings] = useState([]);
+  const [users, setUsers] = useState([]);
+  const [reviews, setReviews] = useState([]);
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const [bannerFile, setBannerFile] = useState(null);
+  const [eventFile, setEventFile] = useState(null);
+  const [eventPreview, setEventPreview] = useState("");
+  const [editingUserId, setEditingUserId] = useState("");
+  const [editingName, setEditingName] = useState("");
+  const [editingEmail, setEditingEmail] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
@@ -14,214 +36,364 @@ function AdminPage({ onBack }) {
   const [loading, setLoading] = useState(false);
 
   const fetchEvents = async () => {
-    try {
-      const response = await getEvents();
-      setEvents(response.data);
-    } catch (error) {
-      console.error("Failed to fetch events", error);
-    }
+    const response = await getEvents();
+    setEvents(response.data);
   };
 
   const fetchBookings = async () => {
-    try {
-      const response = await getBookings();
-      setBookings(response.data);
-    } catch (error) {
-      console.error("Failed to fetch bookings", error);
-    }
+    const response = await getBookings();
+    setBookings(response.data);
+  };
+
+  const fetchUsers = async () => {
+    const response = await getUsers();
+    setUsers(response.data);
+  };
+
+  const fetchReviews = async () => {
+    const response = await getReviews();
+    setReviews(response.data);
+  };
+
+  const fetchBanner = async () => {
+    const response = await getBannerImage();
+    setBannerImageUrl(response.data.imageUrl || "");
   };
 
   useEffect(() => {
     fetchEvents();
     fetchBookings();
+    fetchUsers();
+    fetchReviews();
+    fetchBanner();
   }, []);
 
-  const handleSubmit = async (e) => {
-
+  const handleCreateEvent = async (e) => {
     e.preventDefault();
     setLoading(true);
 
     try {
+      let imageUrl = "";
 
-      await createEvent({ title, description, date, location, totalSeats: Number(totalSeats) });
-      alert("Event created successfully!");
+      if (eventFile) {
+        const uploadResponse = await uploadEventImage(eventFile, "ctse-events/events");
+        imageUrl = uploadResponse.data.imageUrl;
+      }
+
+      await createEvent({
+        title,
+        description,
+        date,
+        location,
+        totalSeats: Number(totalSeats),
+        imageUrl,
+      });
+
       setTitle("");
       setDescription("");
       setDate("");
       setLocation("");
       setTotalSeats("");
-      fetchEvents();
-
+      setEventFile(null);
+      setEventPreview("");
+      await fetchEvents();
+      alert("Event created successfully");
     } catch (error) {
-
-      alert("Failed to create event: " + error.message);
-
+      alert(error.response?.data?.message || "Failed to create event");
     }
 
     setLoading(false);
   };
 
-  const handleDeleteEvent = async (id) => {
-
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      await deleteEvent(id);
-      fetchEvents();
+  const handleBannerUpload = async () => {
+    if (!bannerFile) {
+      alert("Select a banner image first");
+      return;
     }
 
+    try {
+      const uploadResponse = await uploadBannerImage(bannerFile);
+      await updateBannerImage(uploadResponse.data.imageUrl);
+      await fetchBanner();
+      setBannerFile(null);
+      alert("Banner updated successfully");
+    } catch (error) {
+      alert(error.response?.data?.message || "Failed to upload banner");
+    }
+  };
+
+  const handleDeleteEvent = async (id) => {
+    if (!window.confirm("Delete this event?")) {
+      return;
+    }
+
+    await deleteEvent(id);
+    fetchEvents();
   };
 
   const handleCancelBooking = async (id) => {
-
-    if (window.confirm("Are you sure you want to cancel this booking?")) {
-      await deleteBooking(id);
-      fetchBookings();
+    if (!window.confirm("Cancel this booking?")) {
+      return;
     }
 
+    await deleteBooking(id);
+    fetchBookings();
+    fetchEvents();
   };
 
-  return (
-    <div className="app">
+  const handleDeleteReview = async (id) => {
+    if (!window.confirm("Delete this review?")) {
+      return;
+    }
 
-      <nav className="navbar">
-        <h1 className="nav-title">Admin Panel</h1>
-        <button className="back-btn" onClick={onBack}>← Back to Home</button>
-      </nav>
+    await deleteReview(id);
+    fetchReviews();
+  };
 
-      <main className="main-content">
+  const startEditUser = (user) => {
+    setEditingUserId(user._id);
+    setEditingName(user.name);
+    setEditingEmail(user.email);
+  };
 
-        <div className="admin-grid">
+  const handleUpdateUser = async (e) => {
+    e.preventDefault();
 
-          <div className="admin-form-section">
+    await updateUser(editingUserId, {
+      name: editingName,
+      email: editingEmail,
+    });
 
-            <h2>Add New Event</h2>
+    setEditingUserId("");
+    setEditingName("");
+    setEditingEmail("");
+    fetchUsers();
+  };
 
-            <form className="admin-form" onSubmit={handleSubmit}>
+  const findUser = (userId) => users.find((user) => user._id === userId);
+  const findEvent = (eventId) => events.find((event) => event._id === eventId);
 
-              <label>Event Title</label>
-              <input
-                type="text"
-                placeholder="e.g. Tech Conference 2026"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
+  const renderEventsSection = () => (
+    <div className="service-panel">
+      <div className="service-header-row">
+        <h2>Event Service</h2>
+        <span>{events.length} events</span>
+      </div>
 
-              <label>Description</label>
-              <textarea
-                placeholder="Describe the event..."
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                required
-                rows={4}
-              />
+      <div className="admin-grid">
+        <div>
+          <form className="admin-form" onSubmit={handleCreateEvent}>
+            <label>Event Title</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} required />
 
-              <label>Date & Time</label>
-              <input
-                type="datetime-local"
-                value={date}
-                onChange={(e) => setDate(e.target.value)}
-                required
-              />
+            <label>Description</label>
+            <textarea rows={4} value={description} onChange={(e) => setDescription(e.target.value)} required />
 
-              <label>Location</label>
-              <input
-                type="text"
-                placeholder="e.g. Colombo, Sri Lanka"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                required
-              />
+            <label>Date & Time</label>
+            <input type="datetime-local" value={date} onChange={(e) => setDate(e.target.value)} required />
 
-              <label>Total Seats</label>
-              <input
-                type="number"
-                placeholder="e.g. 100"
-                min="1"
-                value={totalSeats}
-                onChange={(e) => setTotalSeats(e.target.value)}
-                required
-              />
+            <label>Location</label>
+            <input value={location} onChange={(e) => setLocation(e.target.value)} required />
 
-              <button type="submit" className="submit-btn" disabled={loading}>
-                {loading ? "Creating..." : "Create Event"}
-              </button>
+            <label>Total Seats</label>
+            <input type="number" min="1" value={totalSeats} onChange={(e) => setTotalSeats(e.target.value)} required />
 
-            </form>
+            <label>Event Image</label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                setEventFile(file || null);
+                setEventPreview(file ? URL.createObjectURL(file) : "");
+              }}
+            />
 
-          </div>
+            {eventPreview && <img className="upload-preview" src={eventPreview} alt="Event preview" />}
 
-          <div className="admin-events-section">
-
-            <h2>All Events ({events.length})</h2>
-
-            {events.length === 0 ? (
-              <p className="empty-msg">No events yet. Add one using the form.</p>
-            ) : (
-              <ul className="admin-event-list">
-                {events.map((event) => (
-                  <li key={event._id} className="admin-event-item">
-                    <div>
-                      <strong>{event.title}</strong>
-                      <p>{event.location} — {new Date(event.date).toLocaleDateString()}</p>
-                      <p>{event.availableSeats} / {event.totalSeats} seats available</p>
-                    </div>
-                    <button
-                      className="delete-btn"
-                      onClick={() => handleDeleteEvent(event._id)}
-                    >
-                      Delete
-                    </button>
-                  </li>
-                ))}
-              </ul>
-            )}
-
-          </div>
+            <button type="submit" className="submit-btn" disabled={loading}>
+              {loading ? "Creating..." : "Create Event"}
+            </button>
+          </form>
 
         </div>
 
-        <h2 className="section-title">All Bookings ({bookings.length})</h2>
+        <div>
+          <ul className="admin-event-list">
+            {events.map((event) => (
+              <li key={event._id} className="admin-event-item card-stack">
+                {event.imageUrl && <img className="event-admin-thumb" src={event.imageUrl} alt={event.title} />}
+                <div>
+                  <strong>{event.title}</strong>
+                  <p>{event.location} | {new Date(event.date).toLocaleDateString()}</p>
+                  <p>{event.availableSeats} / {event.totalSeats} seats available</p>
+                </div>
+                <button className="delete-btn" onClick={() => handleDeleteEvent(event._id)}>Delete</button>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </div>
+  );
 
-        {bookings.length === 0 ? (
-          <p className="empty-msg">No bookings yet.</p>
-        ) : (
-          <div className="bookings-section">
-            <table className="booking-table">
-              <thead>
-                <tr>
-                  <th>User ID</th>
-                  <th>Event ID</th>
-                  <th>Seats</th>
-                  <th>Status</th>
-                  <th>Booked At</th>
-                  <th>Action</th>
+  const renderBookingsSection = () => (
+    <div className="service-panel">
+      <div className="service-header-row">
+        <h2>Booking Service</h2>
+        <span>{bookings.length} bookings</span>
+      </div>
+      <div className="bookings-section">
+        <div className="admin-form banner-panel">
+          <label>Home Banner Image</label>
+          <input type="file" accept="image/*" onChange={(e) => setBannerFile(e.target.files?.[0] || null)} />
+          {bannerImageUrl && <img className="upload-preview banner-preview" src={bannerImageUrl} alt="Banner preview" />}
+          <button type="button" className="submit-btn" onClick={handleBannerUpload}>Upload Banner</button>
+        </div>
+
+        <table className="booking-table">
+          <thead>
+            <tr>
+              <th>User</th>
+              <th>Email</th>
+              <th>Role</th>
+              <th>Event</th>
+              <th>Seats</th>
+              <th>Seat Numbers</th>
+              <th>Status</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {bookings.map((booking) => {
+              const user = findUser(booking.userId);
+              const event = findEvent(booking.eventId);
+
+              return (
+                <tr key={booking._id}>
+                  <td>{user?.name || booking.userId}</td>
+                  <td>{user?.email || "-"}</td>
+                  <td>{user?.role || "-"}</td>
+                  <td>{event?.title || booking.eventId}</td>
+                  <td>{booking.seats}</td>
+                  <td>{booking.seatNumbers?.join(", ") || "-"}</td>
+                  <td>{booking.status}</td>
+                  <td>
+                    <button className="delete-btn" onClick={() => handleCancelBooking(booking._id)}>
+                      Cancel
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {bookings.map((booking) => (
-                  <tr key={booking._id}>
-                    <td>{booking.userId}</td>
-                    <td>{booking.eventId}</td>
-                    <td>{booking.seats}</td>
-                    <td>{booking.status}</td>
-                    <td>{new Date(booking.createdAt).toLocaleDateString()}</td>
-                    <td>
-                      <button
-                        className="delete-btn"
-                        onClick={() => handleCancelBooking(booking._id)}
-                      >
-                        Cancel
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  );
 
+  const renderReviewsSection = () => (
+    <div className="service-panel">
+      <div className="service-header-row">
+        <h2>User Review Service</h2>
+        <span>{reviews.length} reviews</span>
+      </div>
+      <div className="review-list admin-review-list">
+        {reviews.map((review) => {
+          const event = findEvent(review.eventId);
+
+          return (
+            <div className="review-item" key={review._id}>
+              <div>
+                <strong>{review.userName}</strong>
+                <p>Event: {event?.title || review.eventId}</p>
+                <p>Rating: {review.rating}/5</p>
+                <p>{review.comment}</p>
+              </div>
+              <button className="delete-btn" onClick={() => handleDeleteReview(review._id)}>
+                Remove
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+
+  const renderUsersSection = () => (
+    <div className="service-panel">
+      <div className="service-header-row">
+        <h2>User Management Service</h2>
+        <span>{users.length} users</span>
+      </div>
+      <div className="admin-grid">
+        <div className="bookings-section">
+          <table className="booking-table">
+            <thead>
+              <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Role</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr key={user._id}>
+                  <td>{user.name}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
+                  <td>
+                    <button className="admin-btn" onClick={() => startEditUser(user)}>
+                      Edit
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+
+        <form className="admin-form" onSubmit={handleUpdateUser}>
+          <label>User Name</label>
+          <input value={editingName} onChange={(e) => setEditingName(e.target.value)} disabled={!editingUserId} required />
+
+          <label>User Email</label>
+          <input type="email" value={editingEmail} onChange={(e) => setEditingEmail(e.target.value)} disabled={!editingUserId} required />
+
+          <label>User Role</label>
+          <input value={users.find((user) => user._id === editingUserId)?.role || "Select a user to edit"} disabled />
+
+          <button type="submit" className="submit-btn" disabled={!editingUserId}>
+            Save User Changes
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="app">
+      <nav className="navbar">
+        <h1 className="nav-title">Admin Panel</h1>
+        <button className="back-btn" onClick={onBack}>Back to Home</button>
+      </nav>
+
+      <main className="main-content admin-layout">
+        <aside className="service-sidebar">
+          <button className={`service-nav-btn ${activeService === "events" ? "active" : ""}`} onClick={() => setActiveService("events")}>Event Service</button>
+          <button className={`service-nav-btn ${activeService === "bookings" ? "active" : ""}`} onClick={() => setActiveService("bookings")}>Booking Service</button>
+          <button className={`service-nav-btn ${activeService === "reviews" ? "active" : ""}`} onClick={() => setActiveService("reviews")}>User Review Service</button>
+          <button className={`service-nav-btn ${activeService === "users" ? "active" : ""}`} onClick={() => setActiveService("users")}>User Management Service</button>
+        </aside>
+
+        <section className="admin-main-panel">
+          {activeService === "events" && renderEventsSection()}
+          {activeService === "bookings" && renderBookingsSection()}
+          {activeService === "reviews" && renderReviewsSection()}
+          {activeService === "users" && renderUsersSection()}
+        </section>
       </main>
-
     </div>
   );
 }

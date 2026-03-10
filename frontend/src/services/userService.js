@@ -9,3 +9,11 @@ export const registerUser = async (userData) => {
 export const loginUser = async (credentials) => {
   return await axios.post(`${API_URL}/login`, credentials);
 };
+
+export const getUsers = async () => {
+  return await axios.get(API_URL);
+};
+
+export const updateUser = async (id, userData) => {
+  return await axios.put(`${API_URL}/${id}`, userData);
+};

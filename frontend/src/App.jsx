@@ -1,11 +1,11 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import EventCard from "./components/EventCard";
 import BookingModal from "./components/BookingModal";
 import BookingList from "./components/BookingList";
 import AdminPage from "./components/AdminPage";
 import AuthPage from "./components/AuthPage";
 import EventReviews from "./components/EventReviews";
-import { getBookings } from "./services/bookingService";
+import { getBannerImage, getBookings } from "./services/bookingService";
 import { getEvents } from "./services/eventService";
 import "./App.css";
 
@@ -16,6 +16,9 @@ function App() {
   const [bookings, setBookings] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [bannerImageUrl, setBannerImageUrl] = useState("");
+  const userMenuRef = useRef(null);
 
   const fetchEvents = async () => {
     try {
@@ -35,6 +38,15 @@ function App() {
     }
   };
 
+  const fetchBanner = async () => {
+    try {
+      const response = await getBannerImage();
+      setBannerImageUrl(response.data.imageUrl || "");
+    } catch (error) {
+      console.error("Failed to fetch banner", error);
+    }
+  };
+
   useEffect(() => {
     const savedUser = localStorage.getItem("currentUser");
     if (savedUser) {
@@ -43,6 +55,21 @@ function App() {
 
     fetchEvents();
     fetchBookings();
+    fetchBanner();
+  }, []);
+
+  useEffect(() => {
+    const closeMenuOnOutsideClick = (event) => {
+      if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
+        setIsUserMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", closeMenuOnOutsideClick);
+
+    return () => {
+      document.removeEventListener("mousedown", closeMenuOnOutsideClick);
+    };
   }, []);
 
   const handleAuthenticated = (user) => {
@@ -72,6 +99,7 @@ function App() {
           setPage("home");
           fetchEvents();
           fetchBookings();
+          fetchBanner();
         }}
       />
     );
@@ -88,11 +116,48 @@ function App() {
               Admin
             </button>
           )}
-          <button className="back-btn" onClick={handleLogout}>Logout</button>
+
+          <div className="user-menu" ref={userMenuRef}>
+            <button
+              className="user-icon-btn"
+              onClick={() => setIsUserMenuOpen((prev) => !prev)}
+            >
+              {currentUser.name?.charAt(0).toUpperCase() || "U"}
+            </button>
+
+            {isUserMenuOpen && (
+              <div className="user-dropdown">
+                <p className="user-dropdown-name">{currentUser.name}</p>
+                <p className="user-dropdown-email">{currentUser.email}</p>
+                <p className="user-dropdown-role">Role: {currentUser.role}</p>
+                <button className="logout-btn" onClick={handleLogout}>
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </nav>
 
       <main className="main-content">
+
+        <section
+          className="hero-banner"
+          style={bannerImageUrl ? {
+            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.58), rgba(59, 12, 84, 0.48)), url(${bannerImageUrl})`,
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          } : undefined}
+        >
+          <div className="hero-content">
+            <p className="hero-chip">Live Events Platform</p>
+            <h2>Discover, Book, and Review Your Favorite Experiences</h2>
+            <p>
+              Browse upcoming events, reserve seats instantly, and share feedback
+              with other attendees.
+            </p>
+          </div>
+        </section>
 
         <h2 className="section-title">Upcoming Events</h2>
 
@@ -129,6 +194,11 @@ function App() {
         <EventReviews events={events} currentUser={currentUser} />
 
       </main>
+
+      <footer className="site-footer">
+        <p>Event Booking System</p>
+        <p>{new Date().getFullYear()} All rights reserved.</p>
+      </footer>
 
     </div>
   );

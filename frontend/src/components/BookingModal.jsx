@@ -1,19 +1,61 @@
-import React, { useState } from "react";
-import { createBooking } from "../services/bookingService";
+import React, { useEffect, useMemo, useState } from "react";
+import { createBooking, getBookedSeats } from "../services/bookingService";
 
 function BookingModal({ event, currentUser, onClose, onBooked }) {
 
-  const [seats, setSeats] = useState(1);
+  const [bookedSeats, setBookedSeats] = useState([]);
+  const [selectedSeats, setSelectedSeats] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const totalSeats = event.totalSeats || 0;
+
+  const allSeatNumbers = useMemo(() => {
+    return Array.from({ length: totalSeats }, (_v, i) => i + 1);
+  }, [totalSeats]);
+
+  useEffect(() => {
+    const fetchBookedSeats = async () => {
+      try {
+        const response = await getBookedSeats(event._id);
+        setBookedSeats(response.data.seatNumbers || []);
+      } catch (error) {
+        alert("Failed to load seat map: " + error.message);
+      }
+    };
+
+    fetchBookedSeats();
+  }, [event._id]);
+
+  const toggleSeat = (seatNumber) => {
+    if (bookedSeats.includes(seatNumber)) {
+      return;
+    }
+
+    if (selectedSeats.includes(seatNumber)) {
+      setSelectedSeats(selectedSeats.filter((seat) => seat !== seatNumber));
+      return;
+    }
+
+    setSelectedSeats([...selectedSeats, seatNumber]);
+  };
 
   const handleSubmit = async (e) => {
 
     e.preventDefault();
+    if (selectedSeats.length === 0) {
+      alert("Please select at least one seat");
+      return;
+    }
+
     setLoading(true);
 
     try {
 
-      await createBooking({ userId: currentUser._id, eventId: event._id, seats: Number(seats) });
+      await createBooking({
+        userId: currentUser._id,
+        eventId: event._id,
+        seatNumbers: selectedSeats.sort((a, b) => a - b)
+      });
       alert("Booking confirmed!");
       onBooked();
 
@@ -37,15 +79,30 @@ function BookingModal({ event, currentUser, onClose, onBooked }) {
 
         <form onSubmit={handleSubmit}>
 
-          <label>Number of Seats</label>
-          <input
-            type="number"
-            min="1"
-            max={event.availableSeats}
-            value={seats}
-            onChange={(e) => setSeats(e.target.value)}
-            required
-          />
+          <label>Select Seats</label>
+          <div className="seat-map" role="list">
+            {allSeatNumbers.map((seatNumber) => {
+              const isBooked = bookedSeats.includes(seatNumber);
+              const isSelected = selectedSeats.includes(seatNumber);
+
+              return (
+                <button
+                  key={seatNumber}
+                  type="button"
+                  className={`seat-box ${isBooked ? "seat-booked" : isSelected ? "seat-selected" : "seat-free"}`}
+                  onClick={() => toggleSeat(seatNumber)}
+                  disabled={isBooked}
+                  title={isBooked ? "Booked" : "Free"}
+                >
+                  {seatNumber}
+                </button>
+              );
+            })}
+          </div>
+
+          <p className="selected-seats-text">
+            Selected: {selectedSeats.length === 0 ? "None" : selectedSeats.sort((a, b) => a - b).join(", ")}
+          </p>
 
           <div className="modal-actions">
             <button type="button" className="cancel-btn" onClick={onClose}>

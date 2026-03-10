@@ -11,6 +11,10 @@ function EventCard({ event, onBook }) {
   return (
     <div className="event-card">
 
+      {event.imageUrl && (
+        <img className="event-card-image" src={event.imageUrl} alt={event.title} />
+      )}
+
       <h3 className="event-title">{event.title}</h3>
 
       <p className="event-description">{event.description}</p>

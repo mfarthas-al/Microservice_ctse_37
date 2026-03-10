@@ -20,6 +20,7 @@ function BookingList({ bookings, refreshBookings }) {
             <th>User ID</th>
             <th>Event ID</th>
             <th>Seats</th>
+            <th>Seat Numbers</th>
             <th>Status</th>
             <th>Action</th>
           </tr>
@@ -30,6 +31,7 @@ function BookingList({ bookings, refreshBookings }) {
               <td>{booking.userId}</td>
               <td>{booking.eventId}</td>
               <td>{booking.seats}</td>
+              <td>{booking.seatNumbers?.join(", ") || "-"}</td>
               <td>{booking.status}</td>
               <td>
                 <button
