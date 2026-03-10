@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { createBooking } from "../services/bookingService";
 
-function BookingModal({ event, onClose, onBooked }) {
+function BookingModal({ event, currentUser, onClose, onBooked }) {
 
-  const [userId, setUserId] = useState("");
   const [seats, setSeats] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -14,7 +13,7 @@ function BookingModal({ event, onClose, onBooked }) {
 
     try {
 
-      await createBooking({ userId, eventId: event._id, seats: Number(seats) });
+      await createBooking({ userId: currentUser._id, eventId: event._id, seats: Number(seats) });
       alert("Booking confirmed!");
       onBooked();
 
@@ -33,18 +32,10 @@ function BookingModal({ event, onClose, onBooked }) {
       <div className="modal" onClick={(e) => e.stopPropagation()}>
 
         <h2>Book: {event.title}</h2>
-        <p>📍 {event.location} &nbsp;|&nbsp; 💺 {event.availableSeats} seats available</p>
+        <p>{event.location} | {event.availableSeats} seats available</p>
+        <p>Booking as: {currentUser.name} ({currentUser.email})</p>
 
         <form onSubmit={handleSubmit}>
-
-          <label>Your User ID</label>
-          <input
-            type="text"
-            placeholder="Enter your user ID"
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            required
-          />
 
           <label>Number of Seats</label>
           <input

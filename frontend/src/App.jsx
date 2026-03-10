@@ -3,6 +3,8 @@ import EventCard from "./components/EventCard";
 import BookingModal from "./components/BookingModal";
 import BookingList from "./components/BookingList";
 import AdminPage from "./components/AdminPage";
+import AuthPage from "./components/AuthPage";
+import EventReviews from "./components/EventReviews";
 import { getBookings } from "./services/bookingService";
 import { getEvents } from "./services/eventService";
 import "./App.css";
@@ -13,6 +15,7 @@ function App() {
   const [events, setEvents] = useState([]);
   const [bookings, setBookings] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
+  const [currentUser, setCurrentUser] = useState(null);
 
   const fetchEvents = async () => {
     try {
@@ -33,16 +36,42 @@ function App() {
   };
 
   useEffect(() => {
+    const savedUser = localStorage.getItem("currentUser");
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+    }
+
     fetchEvents();
     fetchBookings();
   }, []);
 
-  if (page === "admin") {
+  const handleAuthenticated = (user) => {
+    setCurrentUser(user);
+    localStorage.setItem("currentUser", JSON.stringify(user));
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    setPage("home");
+    localStorage.removeItem("currentUser");
+  };
+
+  const myBookings = currentUser
+    ? bookings.filter((booking) => booking.userId === currentUser._id)
+    : [];
+
+  if (!currentUser) {
+    return <AuthPage onAuthenticated={handleAuthenticated} />;
+  }
+
+  if (page === "admin" && currentUser.role === "admin") {
     return (
       <AdminPage
+        currentUser={currentUser}
         onBack={() => {
           setPage("home");
           fetchEvents();
+          fetchBookings();
         }}
       />
     );
@@ -53,9 +82,14 @@ function App() {
 
       <nav className="navbar">
         <h1 className="nav-title">Event Booking System</h1>
-        <button className="admin-btn" onClick={() => setPage("admin")}>
-          Admin
-        </button>
+        <div className="nav-actions">
+          {currentUser.role === "admin" && (
+            <button className="admin-btn" onClick={() => setPage("admin")}>
+              Admin
+            </button>
+          )}
+          <button className="back-btn" onClick={handleLogout}>Logout</button>
+        </div>
       </nav>
 
       <main className="main-content">
@@ -79,16 +113,20 @@ function App() {
         {selectedEvent && (
           <BookingModal
             event={selectedEvent}
+            currentUser={currentUser}
             onClose={() => setSelectedEvent(null)}
             onBooked={() => {
               setSelectedEvent(null);
               fetchBookings();
+              fetchEvents();
             }}
           />
         )}
 
         <h2 className="section-title">My Bookings</h2>
-        <BookingList bookings={bookings} refreshBookings={fetchBookings} />
+        <BookingList bookings={myBookings} refreshBookings={fetchBookings} />
+
+        <EventReviews events={events} currentUser={currentUser} />
 
       </main>
 
