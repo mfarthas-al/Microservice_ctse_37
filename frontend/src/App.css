@@ -21,6 +21,12 @@ body {
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
+.nav-actions {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
 .nav-title {
   font-size: 1.5rem;
   font-weight: 700;
@@ -401,4 +407,111 @@ body {
   color: #777;
   font-size: 0.85rem;
   margin-top: 4px;
+}
+
+.auth-wrapper {
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+.auth-card {
+  width: 100%;
+  max-width: 460px;
+  background: white;
+  border-radius: 14px;
+  padding: 28px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.auth-card h1 {
+  font-size: 1.6rem;
+  margin-bottom: 8px;
+  color: #1a1a2e;
+}
+
+.auth-card p {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-form label {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.auth-form input {
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+}
+
+.mode-btn {
+  margin-top: 14px;
+  width: 100%;
+  border: 0;
+  background: #f2f4f7;
+  padding: 10px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.reviews-block {
+  margin: 28px 0 40px;
+}
+
+.review-controls,
+.review-form {
+  background: white;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  margin-top: 10px;
+}
+
+.review-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-controls select,
+.review-form select,
+.review-form textarea {
+  width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 10px;
+  font-family: inherit;
+}
+
+.review-form {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.review-list {
+  margin-top: 12px;
+  display: grid;
+  gap: 10px;
+}
+
+.review-item {
+  background: white;
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
 }
