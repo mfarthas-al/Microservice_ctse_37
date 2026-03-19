@@ -87,6 +87,17 @@ function App() {
     ? bookings.filter((booking) => booking.userId === currentUser._id)
     : [];
 
+  const showcaseImages = [
+    "/image/event1.jpg",
+    "/image/event2.jpg",
+    "/image/event3.jpg",
+    "/image/event4.jpg",
+    "/image/event5.jpg",
+  ];
+
+  const soldOutCount = events.filter((event) => event.availableSeats === 0).length;
+  const totalOpenSeats = events.reduce((sum, event) => sum + Number(event.availableSeats || 0), 0);
+
   if (!currentUser) {
     return <AuthPage onAuthenticated={handleAuthenticated} />;
   }
@@ -109,11 +120,14 @@ function App() {
     <div className="app">
 
       <nav className="navbar">
-        <h1 className="nav-title">Event Booking System</h1>
+        <div className="nav-title-wrap">
+          <h1 className="nav-title">Pulse Events</h1>
+          <p className="nav-subtitle">Creator gatherings, concerts, workshops, and festivals</p>
+        </div>
         <div className="nav-actions">
           {currentUser.role === "admin" && (
             <button className="admin-btn" onClick={() => setPage("admin")}>
-              Admin
+              Admin Studio
             </button>
           )}
 
@@ -143,37 +157,104 @@ function App() {
 
         <section
           className="hero-banner"
-          style={bannerImageUrl ? {
-            backgroundImage: `linear-gradient(rgba(15, 23, 42, 0.58), rgba(59, 12, 84, 0.48)), url(${bannerImageUrl})`,
+          style={{
+            backgroundImage: `linear-gradient(rgba(2, 6, 23, 0.76), rgba(67, 15, 124, 0.56)), url(${bannerImageUrl || "/image/eventbanner.jpg"})`,
             backgroundSize: "cover",
             backgroundPosition: "center",
-          } : undefined}
+          }}
         >
           <div className="hero-content">
-            <p className="hero-chip">Live Events Platform</p>
-            <h2>Discover, Book, and Review Your Favorite Experiences</h2>
+            <p className="hero-chip">UPCOMING EVENTS</p>
+            <h2>THE CREATOR GATHERING EXPERIENCE</h2>
             <p>
-              Browse upcoming events, reserve seats instantly, and share feedback
-              with other attendees.
+              Discover premium live experiences, reserve your seats, and manage every
+              booking from one professional dashboard.
             </p>
+            <div className="hero-metrics">
+              <div className="hero-metric-card">
+                <p className="hero-metric-value">{events.length}</p>
+                <p className="hero-metric-label">Upcoming Events</p>
+              </div>
+              <div className="hero-metric-card">
+                <p className="hero-metric-value">{totalOpenSeats}</p>
+                <p className="hero-metric-label">Open Seats</p>
+              </div>
+              <div className="hero-metric-card">
+                <p className="hero-metric-value">{myBookings.length}</p>
+                <p className="hero-metric-label">My Bookings</p>
+              </div>
+              <div className="hero-metric-card">
+                <p className="hero-metric-value">{soldOutCount}</p>
+                <p className="hero-metric-label">Sold Out</p>
+              </div>
+            </div>
           </div>
         </section>
 
-        <h2 className="section-title">Upcoming Events</h2>
-
-        {events.length === 0 ? (
-          <p className="empty-msg">No events available. Check back later!</p>
-        ) : (
-          <div className="events-grid">
-            {events.map((event) => (
-              <EventCard
-                key={event._id}
-                event={event}
-                onBook={() => setSelectedEvent(event)}
-              />
-            ))}
+        <section className="ticker-strip" aria-label="cities ticker">
+          <div className="ticker-track">
+            <span>BUY TICKETS</span>
+            <span>COLOMBO</span>
+            <span>SINGAPORE</span>
+            <span>DUBAI</span>
+            <span>LONDON</span>
+            <span>BANGALORE</span>
+            <span>BUY TICKETS</span>
+            <span>COLOMBO</span>
+            <span>SINGAPORE</span>
+            <span>DUBAI</span>
+            <span>LONDON</span>
+            <span>BANGALORE</span>
           </div>
-        )}
+        </section>
+
+        <section className="content-section">
+          <div className="section-heading-row">
+            <h2 className="section-title">Upcoming Events</h2>
+            <p className="section-subtitle">Tap any card to reserve your seat instantly</p>
+          </div>
+
+          {events.length === 0 ? (
+            <p className="empty-msg">No events available. Check back later!</p>
+          ) : (
+            <div className="events-grid">
+              {events.map((event, index) => (
+                <EventCard
+                  key={event._id}
+                  event={event}
+                  fallbackImage={showcaseImages[index % showcaseImages.length]}
+                  onBook={() => setSelectedEvent(event)}
+                />
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="kpi-showcase">
+          <h3>WORLD'S TOP CREATORS GATHERING</h3>
+          <div className="kpi-grid">
+            <article>
+              <strong>120+</strong>
+              <span>Speakers</span>
+            </article>
+            <article>
+              <strong>40+</strong>
+              <span>Traffic Sources</span>
+            </article>
+            <article>
+              <strong>160+</strong>
+              <span>Advertisers</span>
+            </article>
+            <article>
+              <strong>110+</strong>
+              <span>Countries</span>
+            </article>
+            <article>
+              <strong>16,209+</strong>
+              <span>Attendees</span>
+            </article>
+          </div>
+        </section>
 
         {selectedEvent && (
           <BookingModal
@@ -188,15 +269,22 @@ function App() {
           />
         )}
 
-        <h2 className="section-title">My Bookings</h2>
-        <BookingList bookings={myBookings} refreshBookings={fetchBookings} />
+        <section className="content-section">
+          <div className="section-heading-row">
+            <h2 className="section-title">My Bookings</h2>
+            <p className="section-subtitle">Manage your reservations in one place</p>
+          </div>
+          <BookingList bookings={myBookings} refreshBookings={fetchBookings} />
+        </section>
 
-        <EventReviews events={events} currentUser={currentUser} />
+        <section className="content-section">
+          <EventReviews events={events} currentUser={currentUser} />
+        </section>
 
       </main>
 
       <footer className="site-footer">
-        <p>Event Booking System</p>
+        <p>Pulse Events Platform</p>
         <p>{new Date().getFullYear()} All rights reserved.</p>
       </footer>
 
