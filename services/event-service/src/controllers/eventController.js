@@ -1,6 +1,6 @@
-const Event = require("../models/Event")
+import Event from "../models/Event.js"
 
-exports.createEvent = async (req, res) => {
+export const createEvent = async (req, res) => {
 
   try {
 
@@ -28,7 +28,7 @@ exports.createEvent = async (req, res) => {
 
 }
 
-exports.getEvents = async (req, res) => {
+export const getEvents = async (req, res) => {
 
   try {
 
@@ -44,7 +44,7 @@ exports.getEvents = async (req, res) => {
 
 }
 
-exports.getEventById = async (req, res) => {
+export const getEventById = async (req, res) => {
 
   try {
 
@@ -64,7 +64,7 @@ exports.getEventById = async (req, res) => {
 
 }
 
-exports.updateEvent = async (req, res) => {
+export const updateEvent = async (req, res) => {
 
   try {
 
@@ -84,7 +84,7 @@ exports.updateEvent = async (req, res) => {
 
 }
 
-exports.deleteEvent = async (req, res) => {
+export const deleteEvent = async (req, res) => {
 
   try {
 
