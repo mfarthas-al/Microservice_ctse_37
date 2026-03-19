@@ -1,21 +1,19 @@
-const express = require("express")
-
-const router = express.Router()
-
-const {
+import express from "express"
+import multer from "multer"
+import {
   createEvent,
   getEvents,
   getEventById,
   updateEvent,
   deleteEvent
-} = require("../controllers/eventController")
-const {
+} from "../controllers/eventController.js"
+import {
   uploadImage,
   getBanner,
   updateBanner
-} = require("../controllers/assetController")
+} from "../controllers/assetController.js"
 
-const multer = require("multer")
+const router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
 
 router.post("/", createEvent)
@@ -34,4 +32,4 @@ router.put("/:id", updateEvent)
 
 router.delete("/:id", deleteEvent)
 
-module.exports = router
+export default router

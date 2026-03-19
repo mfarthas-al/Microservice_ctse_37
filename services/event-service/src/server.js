@@ -1,10 +1,10 @@
-require("dotenv").config()
+import "dotenv/config"
 
-const express = require("express")
-const cors = require("cors")
+import express from "express"
+import cors from "cors"
 
-const connectDB = require("./config/db")
-const eventRoutes = require("./routes/eventRoutes")
+import connectDB from "./config/db.js"
+import eventRoutes from "./routes/eventRoutes.js"
 
 const app = express()
 

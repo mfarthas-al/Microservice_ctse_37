@@ -1,0 +1,61 @@
+services:
+  event-service:
+    build:
+      context: ./services/event-service
+    container_name: event-service
+    env_file:
+      - ./services/event-service/.env
+    ports:
+      - "5001:5001"
+    restart: unless-stopped
+
+  booking-service:
+    build:
+      context: ./services/booking-service
+    container_name: booking-service
+    env_file:
+      - ./services/booking-service/.env
+    environment:
+      EVENT_SERVICE_URL: http://event-service:5001
+    depends_on:
+      - event-service
+    ports:
+      - "5002:5002"
+    restart: unless-stopped
+
+  user-management-service:
+    build:
+      context: ./services/user-management-service
+    container_name: user-management-service
+    env_file:
+      - ./services/user-management-service/.env
+    ports:
+      - "5003:5003"
+    restart: unless-stopped
+
+  customer-review-service:
+    build:
+      context: ./services/customer-review-service
+    container_name: customer-review-service
+    env_file:
+      - ./services/customer-review-service/.env
+    ports:
+      - "5004:5004"
+    restart: unless-stopped
+
+  frontend:
+    build:
+      context: ./frontend
+    container_name: frontend
+    environment:
+      HOST: 0.0.0.0
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+    depends_on:
+      - event-service
+      - booking-service
+      - user-management-service
+      - customer-review-service
+    ports:
+      - "3000:3000"
+    restart: unless-stopped

@@ -1,5 +1,5 @@
-const SiteAsset = require("../models/SiteAsset")
-const cloudinary = require("../config/cloudinary")
+import SiteAsset from "../models/SiteAsset.js"
+import cloudinary from "../config/cloudinary.js"
 
 const uploadToCloudinary = (buffer, folder) => {
   return new Promise((resolve, reject) => {
@@ -19,7 +19,7 @@ const uploadToCloudinary = (buffer, folder) => {
   })
 }
 
-exports.uploadImage = async (req, res) => {
+export const uploadImage = async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ message: "Image file is required" })
@@ -34,7 +34,7 @@ exports.uploadImage = async (req, res) => {
   }
 }
 
-exports.getBanner = async (_req, res) => {
+export const getBanner = async (_req, res) => {
   try {
     const banner = await SiteAsset.findOne({ key: "home-banner" })
     return res.json({ imageUrl: banner?.imageUrl || "" })
@@ -43,7 +43,7 @@ exports.getBanner = async (_req, res) => {
   }
 }
 
-exports.updateBanner = async (req, res) => {
+export const updateBanner = async (req, res) => {
   try {
     const { imageUrl } = req.body
 

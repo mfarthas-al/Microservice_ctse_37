@@ -1,4 +1,4 @@
-const mongoose = require("mongoose")
+import mongoose from "mongoose"
 
 const siteAssetSchema = new mongoose.Schema({
   key: {
@@ -16,4 +16,4 @@ const siteAssetSchema = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model("SiteAsset", siteAssetSchema)
+export default mongoose.model("SiteAsset", siteAssetSchema)
