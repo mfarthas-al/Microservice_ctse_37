@@ -7,6 +7,7 @@ import {
   updateEvent,
   deleteEvent
 } from "../controllers/eventController.js"
+import { protect } from "../middlewares/authMiddleware.js"
 import {
   uploadImage,
   getBanner,
@@ -16,7 +17,7 @@ import {
 const router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
 
-router.post("/", createEvent)
+router.post("/", protect, createEvent)
 
 router.get("/", getEvents)
 
@@ -24,12 +25,12 @@ router.post("/upload", upload.single("image"), uploadImage)
 
 router.get("/banner", getBanner)
 
-router.put("/banner", updateBanner)
+router.put("/banner", protect, updateBanner)
 
 router.get("/:id", getEventById)
 
-router.put("/:id", updateEvent)
+router.put("/:id", protect, updateEvent)
 
-router.delete("/:id", deleteEvent)
+router.delete("/:id", protect, deleteEvent)
 
 export default router

@@ -1,6 +1,10 @@
 node_modules
+npm-debug.log
+.env
 .git
-.gitignore
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
+.github
+coverage
+tests
+README.md
+Dockerfile
+docker-compose.yml

@@ -37,6 +37,31 @@ const eventSchema = new mongoose.Schema({
     required: true
   },
 
+  createdBy: {
+    type: String,
+    required: true,
+    index: true
+  },
+
+  creatorEmail: {
+    type: String,
+    trim: true,
+    lowercase: true,
+    default: null
+  },
+
+  creatorName: {
+    type: String,
+    trim: true,
+    default: null
+  },
+
+  creatorRole: {
+    type: String,
+    enum: ["admin", "organizer", "attendee"],
+    default: null
+  },
+
   createdAt: {
     type: Date,
     default: Date.now
