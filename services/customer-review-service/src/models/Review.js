@@ -5,13 +5,25 @@ const reviewSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  eventTitle: {
+    type: String,
+    default: null
+  },
   userId: {
     type: String,
     required: true
   },
+  userEmail: {
+    type: String,
+    default: null
+  },
   userName: {
     type: String,
     required: true
+  },
+  userRole: {
+    type: String,
+    default: null
   },
   rating: {
     type: Number,
@@ -28,5 +40,7 @@ const reviewSchema = new mongoose.Schema({
     default: Date.now
   }
 })
+
+reviewSchema.index({ eventId: 1, userId: 1 }, { unique: true })
 
 module.exports = mongoose.model("Review", reviewSchema)
