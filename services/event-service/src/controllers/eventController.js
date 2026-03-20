@@ -4,6 +4,10 @@ export const createEvent = async (req, res) => {
 
   try {
 
+    if (!req.user?.id) {
+      return res.status(401).json({ message: "Unauthorized" })
+    }
+
     const { title, description, date, location, totalSeats, imageUrl } = req.body
 
     const event = new Event({
@@ -13,7 +17,11 @@ export const createEvent = async (req, res) => {
       location,
       imageUrl,
       totalSeats,
-      availableSeats: totalSeats
+      availableSeats: totalSeats,
+      createdBy: req.user.id,
+      creatorEmail: req.user.email || null,
+      creatorName: req.user.name || null,
+      creatorRole: req.user.role || null
     })
 
     await event.save()
