@@ -1,22 +1,20 @@
-require("dotenv").config()
+require("dotenv").config();
+const app = require("./app");
+const connectDB = require("./config/db");
 
-const express = require("express")
-const cors = require("cors")
+const PORT = process.env.PORT || 3001;
 
-const connectDB = require("./config/db")
-const userRoutes = require("./routes/userRoutes")
+const startServer = async () => {
+  try {
+    await connectDB();
 
-const app = express()
+    app.listen(PORT, () => {
+      console.log(`Auth service running on port ${PORT}`);
+    });
+  } catch (error) {
+    console.error("Server startup failed:", error.message);
+    process.exit(1);
+  }
+};
 
-connectDB()
-
-app.use(cors())
-app.use(express.json())
-
-app.use("/api/users", userRoutes)
-
-const PORT = process.env.PORT || 5003
-
-app.listen(PORT, () => {
-  console.log(`User Management Service running on port ${PORT}`)
-})
+startServer();
