@@ -41,6 +41,14 @@
 //   );
 // }
 
+// eventfunction EventCard({ event, onBook, fallbackImage }) {
+
+//   const formattedDate = new Date(event.date).toLocaleDateString("en-US", {
+//     year: "numeric",
+//     month: "long",
+//     day: "numeric",
+//   });
+
 // export default EventCard;
 import React, { useState } from "react";
 import "./EventCard.css"; // Create this CSS file for styles
