@@ -1,24 +1,44 @@
 {
-  "name": "user-management-service",
+  "name": "event-authentication-service",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "Auth microservice for event management system",
+  "main": "src/server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon src/server.js",
     "start": "node src/server.js",
-    "dev": "nodemon src/server.js"
+    "test": "jest --runInBand --detectOpenHandles"
+  },
+  "jest": {
+  "testEnvironment": "node"
+},
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mfarthas-al/event-authentication-service.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/mfarthas-al/event-authentication-service/issues"
+  },
+  "homepage": "https://github.com/mfarthas-al/event-authentication-service#readme",
   "dependencies": {
+    "bcryptjs": "^3.0.3",
     "cors": "^2.8.6",
     "dotenv": "^17.3.1",
     "express": "^5.2.1",
-    "mongoose": "^9.2.4"
+    "express-rate-limit": "^8.3.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.2.4",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.14"
+    "jest": "^30.3.0",
+    "mongodb-memory-server": "^11.0.1",
+    "nodemon": "^3.1.14",
+    "supertest": "^7.2.2"
   }
 }
