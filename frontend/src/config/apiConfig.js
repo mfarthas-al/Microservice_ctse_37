@@ -19,7 +19,7 @@ export const bookingApiUrl =
 export const authApiUrl =
   gateway
     ? `${gateway}/api/auth`
-    : process.env.REACT_APP_AUTH_API_URL || "http://localhost:3001/api/auth";
+    : process.env.REACT_APP_AUTH_API_URL || "http://3.110.27.117:3001//api/auth";
 
 export const reviewApiUrl =
   gateway
