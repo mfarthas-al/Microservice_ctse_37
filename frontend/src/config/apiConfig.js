@@ -1,31 +1,44 @@
 const trimTrailingSlash = (value) => (value || "").replace(/\/$/, "");
 
-const gateway = trimTrailingSlash(process.env.REACT_APP_API_GATEWAY_URL);
-
 /**
- * When REACT_APP_API_GATEWAY_URL is set (e.g. http://localhost:8080), all API
- * calls go through the gateway. Otherwise use per-service URLs (direct to each port).
+ * Production on Amplify (HTTPS): the browser blocks http:// API calls (mixed content).
  *
- * Hosted example: gateway = http://13.126.11.22 → /api/auth, /api/events, …
- * Set only REACT_APP_API_GATEWAY_URL in Amplify; do not point the browser at 3.110.27.117
- * unless you serve the SPA over HTTPS and the API over HTTPS (mixed content otherwise).
+ * Option A — HTTPS on your gateway: set REACT_APP_API_GATEWAY_URL=https://your-domain
+ *
+ * Option B — Same-origin proxy (no TLS on EC2): set REACT_APP_RELATIVE_API=true
+ * and in Amplify Console → Hosting → Rewrites and redirects add:
+ *   Source: /api/<*>
+ *   Target: http://13.126.11.22/api/<*>
+ *   Type: Rewrite (200)
+ *
+ * Local dev: leave unset; uses REACT_APP_API_GATEWAY_URL or defaults below.
  */
-export const eventApiUrl =
-  gateway
-    ? `${gateway}/api/events`
-    : process.env.REACT_APP_EVENT_API_URL || "http://localhost:3002/api/events";
+const relativeApi =
+  process.env.REACT_APP_RELATIVE_API === "true" ||
+  process.env.REACT_APP_RELATIVE_API === "1";
 
-export const bookingApiUrl =
-  gateway
-    ? `${gateway}/api/bookings`
-    : process.env.REACT_APP_BOOKING_API_URL || "http://localhost:3003/api/bookings";
+const gateway = trimTrailingSlash(process.env.REACT_APP_API_GATEWAY_URL || "");
 
-export const authApiUrl =
-  gateway
-    ? `${gateway}/api/auth`
-    : process.env.REACT_APP_AUTH_API_URL || "http://localhost:3001/api/auth";
+export const eventApiUrl = relativeApi
+  ? "/api/events"
+  : gateway
+  ? `${gateway}/api/events`
+  : process.env.REACT_APP_EVENT_API_URL || "http://localhost:3002/api/events";
 
-export const reviewApiUrl =
-  gateway
-    ? `${gateway}/api/reviews`
-    : process.env.REACT_APP_REVIEW_API_URL || "http://localhost:3004/api/reviews";
+export const bookingApiUrl = relativeApi
+  ? "/api/bookings"
+  : gateway
+  ? `${gateway}/api/bookings`
+  : process.env.REACT_APP_BOOKING_API_URL || "http://localhost:3003/api/bookings";
+
+export const authApiUrl = relativeApi
+  ? "/api/auth"
+  : gateway
+  ? `${gateway}/api/auth`
+  : process.env.REACT_APP_AUTH_API_URL || "http://localhost:3001/api/auth";
+
+export const reviewApiUrl = relativeApi
+  ? "/api/reviews"
+  : gateway
+  ? `${gateway}/api/reviews`
+  : process.env.REACT_APP_REVIEW_API_URL || "http://localhost:3004/api/reviews";
