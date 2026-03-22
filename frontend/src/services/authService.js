@@ -1,3 +1,4 @@
+//auth service for authentication
 export const AUTH_TOKEN_KEY = "accessToken";
 export const REFRESH_TOKEN_KEY = "refreshToken";
 export const CURRENT_USER_KEY = "currentUser";
