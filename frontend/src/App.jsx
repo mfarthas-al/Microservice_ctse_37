@@ -24,6 +24,13 @@ import {
 } from "./services/userService";
 import "./App.css";
 
+/** API may return a raw array or a wrapped payload { data: [...] }; proxies may vary. */
+function asArray(value) {
+  if (Array.isArray(value)) return value;
+  if (value && typeof value === "object" && Array.isArray(value.data)) return value.data;
+  return [];
+}
+
 function App() {
 
   const [page, setPage] = useState("home");
@@ -39,7 +46,7 @@ function App() {
   const fetchEvents = async () => {
     try {
       const response = await getEvents();
-      setEvents(response.data);
+      setEvents(asArray(response?.data));
     } catch (error) {
       console.error("Failed to fetch events", error);
     }
@@ -48,7 +55,7 @@ function App() {
   const fetchBookings = async () => {
     try {
       const response = await getBookings();
-      setBookings(response.data);
+      setBookings(asArray(response?.data));
     } catch (error) {
       console.error("Failed to fetch bookings", error);
     }
@@ -164,8 +171,9 @@ function App() {
     clearAuthSession();
   };
 
+  const eventList = asArray(events);
   const myBookings = currentUser
-    ? bookings.filter((booking) => booking.userId === (currentUser.id || currentUser._id))
+    ? asArray(bookings).filter((booking) => booking.userId === (currentUser.id || currentUser._id))
     : [];
 
   const showcaseImages = [
@@ -176,8 +184,8 @@ function App() {
     "/image/event5.jpg",
   ];
 
-  const soldOutCount = events.filter((event) => event.availableSeats === 0).length;
-  const totalOpenSeats = events.reduce((sum, event) => sum + Number(event.availableSeats || 0), 0);
+  const soldOutCount = eventList.filter((event) => event.availableSeats === 0).length;
+  const totalOpenSeats = eventList.reduce((sum, event) => sum + Number(event.availableSeats || 0), 0);
 
   if (!authReady) {
     return <div className="app"><main className="main-content"><p>Loading session...</p></main></div>;
@@ -293,7 +301,7 @@ function App() {
             </p>
             <div className="hero-metrics">
               <div className="hero-metric-card">
-                <p className="hero-metric-value">{events.length}</p>
+                <p className="hero-metric-value">{eventList.length}</p>
                 <p className="hero-metric-label">Upcoming Events</p>
               </div>
               <div className="hero-metric-card">
@@ -335,11 +343,11 @@ function App() {
             <p className="section-subtitle">Tap any card to reserve your seat instantly</p>
           </div>
 
-          {events.length === 0 ? (
+          {eventList.length === 0 ? (
             <p className="empty-msg">No events available. Check back later!</p>
           ) : (
             <div className="events-grid">
-              {events.map((event, index) => (
+              {eventList.map((event, index) => (
                 <EventCard
                   key={event._id}
                   event={event}
@@ -399,7 +407,7 @@ function App() {
         </section>
 
         <section className="content-section">
-          <EventReviews events={events} currentUser={currentUser} />
+          <EventReviews events={eventList} currentUser={currentUser} />
         </section>
 
       </main>
