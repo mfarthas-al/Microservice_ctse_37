@@ -1,3 +1,4 @@
+//review controller for customer review service
 const Review = require("../models/Review")
 const { getEventById } = require("../services/eventService")
 const { getMyBookings } = require("../services/bookingService")

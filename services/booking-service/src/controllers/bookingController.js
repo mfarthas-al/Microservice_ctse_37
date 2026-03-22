@@ -1,3 +1,4 @@
+//booking controller for booking service
 const Booking = require("../models/Booking")
 const { getEventById, updateEventById } = require("../services/eventService")
 

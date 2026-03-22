@@ -1,3 +1,4 @@
+//auth controller for user management service
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 const User = require("../models/User");

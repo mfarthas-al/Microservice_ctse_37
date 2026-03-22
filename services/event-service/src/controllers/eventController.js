@@ -1,3 +1,4 @@
+//event controller for event service
 import Event from "../models/Event.js"
 
 export const createEvent = async (req, res) => {
