@@ -1,5 +1,6 @@
 import "dotenv/config"
 
+// Event microservice — CI/CD image: microservice-ctse-37-event-service
 import express from "express"
 import cors from "cors"
 
