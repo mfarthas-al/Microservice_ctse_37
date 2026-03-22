@@ -1,0 +1,68 @@
+# Optional local MongoDB (empty DBs). Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.local-mongo.yml up --build
+services:
+  mongo:
+    image: mongo:7
+    container_name: ctse37-mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 20s
+    restart: unless-stopped
+
+  event-service:
+    environment:
+      PORT: "5001"
+      MONGO_URI: mongodb://mongo:27017/eventdb
+      AUTH_SERVICE_URL: http://user-management-service:5003
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  booking-service:
+    environment:
+      PORT: "5002"
+      MONGO_URI: mongodb://mongo:27017/bookingdb
+      EVENT_SERVICE_URL: http://event-service:5001
+      AUTH_SERVICE_URL: http://user-management-service:5003
+    depends_on:
+      mongo:
+        condition: service_healthy
+      event-service:
+        condition: service_started
+      user-management-service:
+        condition: service_started
+
+  user-management-service:
+    environment:
+      PORT: "5003"
+      MONGO_URI: mongodb://mongo:27017/usersdb
+    depends_on:
+      mongo:
+        condition: service_healthy
+
+  customer-review-service:
+    environment:
+      PORT: "5004"
+      MONGO_URI: mongodb://mongo:27017/reviewdb
+      AUTH_SERVICE_URL: http://user-management-service:5003
+      EVENT_SERVICE_URL: http://event-service:5001
+      BOOKING_SERVICE_URL: http://booking-service:5002
+    depends_on:
+      mongo:
+        condition: service_healthy
+      event-service:
+        condition: service_started
+      booking-service:
+        condition: service_started
+      user-management-service:
+        condition: service_started
+
+volumes:
+  mongo_data:

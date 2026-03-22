@@ -1,14 +1,23 @@
 import axios from "axios";
+import { getAuthHeaders } from "./authStorage";
 
 const API_URL =
-  process.env.REACT_APP_BOOKING_API_URL || "http://localhost:5002/api/bookings";
+  process.env.REACT_APP_BOOKING_API_URL || "http://localhost:3003/api/bookings";
 
 export const createBooking = async (bookingData) => {
-  return await axios.post(API_URL, bookingData);
+  return await axios.post(API_URL, bookingData, {
+    headers: {
+      ...getAuthHeaders(),
+    },
+  });
 };
 
 export const getBookings = async () => {
-  return await axios.get(API_URL);
+  return await axios.get(API_URL, {
+    headers: {
+      ...getAuthHeaders(),
+    },
+  });
 };
 
 export const getBookedSeats = async (eventId) => {
@@ -16,7 +25,11 @@ export const getBookedSeats = async (eventId) => {
 };
 
 export const deleteBooking = async (id) => {
-  return await axios.delete(`${API_URL}/${id}`);
+  return await axios.delete(`${API_URL}/${id}`, {
+    headers: {
+      ...getAuthHeaders(),
+    },
+  });
 };
 
 export const uploadBannerImage = async (file) => {
@@ -35,5 +48,13 @@ export const getBannerImage = async () => {
 };
 
 export const updateBannerImage = async (imageUrl) => {
-  return await axios.put(`${API_URL}/banner`, { imageUrl });
+  return await axios.put(
+    `${API_URL}/banner`,
+    { imageUrl },
+    {
+      headers: {
+        ...getAuthHeaders(),
+      },
+    }
+  );
 };

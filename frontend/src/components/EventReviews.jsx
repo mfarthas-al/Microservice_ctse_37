@@ -187,8 +187,6 @@ function EventReviews({ events, currentUser }) {
     try {
       await createReview({
         eventId: selectedEventId,
-        userId: currentUser._id,
-        userName: currentUser.name,
         rating: Number(rating),
         comment
       });
@@ -474,7 +472,7 @@ function EventReviews({ events, currentUser }) {
                         })}
                       </span>
                       
-                      {(currentUser.role === "admin" || currentUser._id === review.userId) && (
+                      {(currentUser.role === "admin" || (currentUser.id || currentUser._id) === review.userId) && (
                         <button 
                           className="delete-review-btn"
                           onClick={() => handleDelete(review._id)}

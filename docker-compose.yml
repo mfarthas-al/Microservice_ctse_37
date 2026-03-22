@@ -1,3 +1,5 @@
+# APIs use MONGO_URI / MONGODB_URI from each service's .env (e.g. Atlas) — same DB as Postman/local npm.
+# For a fully local MongoDB instead, use: docker compose -f docker-compose.yml -f docker-compose.local-mongo.yml up
 services:
   event-service:
     build:
@@ -5,6 +7,10 @@ services:
     container_name: event-service
     env_file:
       - ./services/event-service/.env
+    environment:
+      PORT: "5001"
+      # Inside Docker, localhost in .env points at this container — use service DNS names
+      AUTH_SERVICE_URL: http://user-management-service:5003
     ports:
       - "5001:5001"
     restart: unless-stopped
@@ -16,9 +22,12 @@ services:
     env_file:
       - ./services/booking-service/.env
     environment:
+      PORT: "5002"
       EVENT_SERVICE_URL: http://event-service:5001
+      AUTH_SERVICE_URL: http://user-management-service:5003
     depends_on:
       - event-service
+      - user-management-service
     ports:
       - "5002:5002"
     restart: unless-stopped
@@ -29,6 +38,8 @@ services:
     container_name: user-management-service
     env_file:
       - ./services/user-management-service/.env
+    environment:
+      PORT: "5003"
     ports:
       - "5003:5003"
     restart: unless-stopped
@@ -39,6 +50,15 @@ services:
     container_name: customer-review-service
     env_file:
       - ./services/customer-review-service/.env
+    environment:
+      PORT: "5004"
+      AUTH_SERVICE_URL: http://user-management-service:5003
+      EVENT_SERVICE_URL: http://event-service:5001
+      BOOKING_SERVICE_URL: http://booking-service:5002
+    depends_on:
+      - event-service
+      - booking-service
+      - user-management-service
     ports:
       - "5004:5004"
     restart: unless-stopped
@@ -46,11 +66,12 @@ services:
   frontend:
     build:
       context: ./frontend
+      args:
+        REACT_APP_EVENT_API_URL: http://localhost:5001/api/events
+        REACT_APP_BOOKING_API_URL: http://localhost:5002/api/bookings
+        REACT_APP_AUTH_API_URL: http://localhost:5003/api/auth
+        REACT_APP_REVIEW_API_URL: http://localhost:5004/api/reviews
     container_name: frontend
-    environment:
-      HOST: 0.0.0.0
-      CHOKIDAR_USEPOLLING: "true"
-      WATCHPACK_POLLING: "true"
     depends_on:
       - event-service
       - booking-service

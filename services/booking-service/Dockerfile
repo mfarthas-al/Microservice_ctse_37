@@ -11,11 +11,12 @@ FROM node:20-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
+ENV PORT=5002
 
 COPY --from=deps /app/node_modules ./node_modules
 
 COPY . .
 
-EXPOSE 3003
+EXPOSE 5002
 
 CMD ["node", "src/server.js"]

@@ -5,8 +5,23 @@ import BookingList from "./components/BookingList";
 import AdminPage from "./components/AdminPage";
 import AuthPage from "./components/AuthPage";
 import EventReviews from "./components/EventReviews";
+import ProfilePage from "./components/ProfilePage";
 import { getBannerImage, getBookings } from "./services/bookingService";
 import { getEvents } from "./services/eventService";
+import {
+  clearAuthSession,
+  getAccessToken,
+  getRefreshToken,
+  getStoredUser,
+  saveAuthSession,
+  setAccessToken,
+  setRefreshToken,
+} from "./services/authStorage";
+import {
+  getMyProfile,
+  logoutUser,
+  refreshAccessToken,
+} from "./services/userService";
 import "./App.css";
 
 function App() {
@@ -16,6 +31,7 @@ function App() {
   const [bookings, setBookings] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [currentUser, setCurrentUser] = useState(null);
+  const [authReady, setAuthReady] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [bannerImageUrl, setBannerImageUrl] = useState("");
   const userMenuRef = useRef(null);
@@ -48,15 +64,66 @@ function App() {
   };
 
   useEffect(() => {
-    const savedUser = localStorage.getItem("currentUser");
-    if (savedUser) {
-      setCurrentUser(JSON.parse(savedUser));
-    }
+    const bootstrapAuth = async () => {
+      const storedUser = getStoredUser();
+      const accessToken = getAccessToken();
+      const refreshToken = getRefreshToken();
 
+      if (!storedUser || !accessToken) {
+        setAuthReady(true);
+        return;
+      }
+
+      try {
+        const profileResponse = await getMyProfile();
+        const profile = profileResponse?.data?.data;
+
+        if (profile) {
+          setCurrentUser(profile);
+          saveAuthSession(profile);
+        }
+      } catch (_profileError) {
+        if (!refreshToken) {
+          clearAuthSession();
+          setCurrentUser(null);
+          setAuthReady(true);
+          return;
+        }
+
+        try {
+          const refreshedTokens = await refreshAccessToken(refreshToken);
+          setAccessToken(refreshedTokens.accessToken);
+          setRefreshToken(refreshedTokens.refreshToken);
+
+          const profileResponse = await getMyProfile();
+          const profile = profileResponse?.data?.data;
+
+          if (profile) {
+            setCurrentUser(profile);
+            saveAuthSession(profile);
+          }
+        } catch (_refreshError) {
+          clearAuthSession();
+          setCurrentUser(null);
+        }
+      }
+
+      setAuthReady(true);
+    };
+
+    bootstrapAuth();
     fetchEvents();
-    fetchBookings();
     fetchBanner();
   }, []);
+
+  useEffect(() => {
+    if (!currentUser) {
+      setBookings([]);
+      return;
+    }
+
+    fetchBookings();
+  }, [currentUser]);
 
   useEffect(() => {
     const closeMenuOnOutsideClick = (event) => {
@@ -73,18 +140,32 @@ function App() {
   }, []);
 
   const handleAuthenticated = (user) => {
-    setCurrentUser(user);
-    localStorage.setItem("currentUser", JSON.stringify(user));
+    const normalizedUser = {
+      ...user,
+      id: user.id || user._id,
+      _id: user._id || user.id,
+    };
+    setCurrentUser(normalizedUser);
+    saveAuthSession(normalizedUser);
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const refreshToken = getRefreshToken();
+
+    if (refreshToken) {
+      try {
+        await logoutUser(refreshToken);
+      } catch (_error) {
+      }
+    }
+
     setCurrentUser(null);
     setPage("home");
-    localStorage.removeItem("currentUser");
+    clearAuthSession();
   };
 
   const myBookings = currentUser
-    ? bookings.filter((booking) => booking.userId === currentUser._id)
+    ? bookings.filter((booking) => booking.userId === (currentUser.id || currentUser._id))
     : [];
 
   const showcaseImages = [
@@ -97,6 +178,10 @@ function App() {
 
   const soldOutCount = events.filter((event) => event.availableSeats === 0).length;
   const totalOpenSeats = events.reduce((sum, event) => sum + Number(event.availableSeats || 0), 0);
+
+  if (!authReady) {
+    return <div className="app"><main className="main-content"><p>Loading session...</p></main></div>;
+  }
 
   if (!currentUser) {
     return <AuthPage onAuthenticated={handleAuthenticated} />;
@@ -113,6 +198,36 @@ function App() {
           fetchBanner();
         }}
       />
+    );
+  }
+
+  if (page === "profile") {
+    return (
+      <div className="app">
+        <nav className="navbar">
+          <div className="nav-title-wrap">
+            <h1 className="nav-title">Pulse Events</h1>
+            <p className="nav-subtitle">Creator gatherings, concerts, workshops, and festivals</p>
+          </div>
+          <div className="nav-actions">
+            <button className="back-btn" onClick={() => setPage("home")}>Back to Home</button>
+          </div>
+        </nav>
+
+        <ProfilePage
+          currentUser={currentUser}
+          onBack={() => setPage("home")}
+          onUserUpdated={(updatedUser) => {
+            setCurrentUser(updatedUser);
+            saveAuthSession(updatedUser);
+          }}
+          onDeleted={() => {
+            setCurrentUser(null);
+            setPage("home");
+            alert("Your account has been deleted");
+          }}
+        />
+      </div>
     );
   }
 
@@ -144,6 +259,12 @@ function App() {
                 <p className="user-dropdown-name">{currentUser.name}</p>
                 <p className="user-dropdown-email">{currentUser.email}</p>
                 <p className="user-dropdown-role">Role: {currentUser.role}</p>
+                <button className="admin-btn" onClick={() => {
+                  setPage("profile");
+                  setIsUserMenuOpen(false);
+                }}>
+                  Profile
+                </button>
                 <button className="logout-btn" onClick={handleLogout}>
                   Logout
                 </button>

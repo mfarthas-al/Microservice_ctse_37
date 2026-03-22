@@ -1,0 +1,25 @@
+# Dependencies — never commit
+node_modules/
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Logs & OS
+*.log
+.DS_Store
+Thumbs.db
+
+# Test / coverage
+coverage/
+
+# Build output (keep frontend/build ignored via frontend/.gitignore; this covers any root builds)
+dist/
+
+# IDE
+.idea/
+.vscode/
+
+# Cursor / local docs (if present)
+cursorgenerateddocs/

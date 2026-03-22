@@ -1,5 +1,6 @@
 import React, { useState } from "react";
 import { loginUser, registerUser } from "../services/userService";
+import { saveAuthSession } from "../services/authStorage";
 
 const authVisual = "/image/upcommingevent.png";
 
@@ -8,12 +9,14 @@ function AuthPage({ onAuthenticated }) {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [role, setRole] = useState("attendee");
   const [loading, setLoading] = useState(false);
 
   const resetForm = () => {
     setName("");
     setEmail("");
     setPassword("");
+    setRole("attendee");
   };
 
   const handleSubmit = async (e) => {
@@ -22,13 +25,14 @@ function AuthPage({ onAuthenticated }) {
 
     try {
       if (mode === "register") {
-        await registerUser({ name, email, password });
+        await registerUser({ name, email, password, role });
         alert("Registration successful. Please login.");
         setMode("login");
         resetForm();
       } else {
-        const response = await loginUser({ email, password });
-        onAuthenticated(response.data);
+        const authData = await loginUser({ email, password });
+        saveAuthSession(authData.user, authData.accessToken, authData.refreshToken);
+        onAuthenticated(authData.user);
       }
     } catch (error) {
       alert(error.response?.data?.message || "Authentication failed");
@@ -64,6 +68,12 @@ function AuthPage({ onAuthenticated }) {
                   onChange={(e) => setName(e.target.value)}
                   required
                 />
+
+                <label>Role</label>
+                <select value={role} onChange={(e) => setRole(e.target.value)} required>
+                  <option value="attendee">Attendee</option>
+                  <option value="organizer">Organizer</option>
+                </select>
               </>
             )}
 

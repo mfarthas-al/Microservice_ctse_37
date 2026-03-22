@@ -52,7 +52,6 @@ function BookingModal({ event, currentUser, onClose, onBooked }) {
     try {
 
       await createBooking({
-        userId: currentUser._id,
         eventId: event._id,
         seatNumbers: selectedSeats.sort((a, b) => a - b)
       });

@@ -454,6 +454,7 @@ function AdminPage({ onBack }) {
   const [editingUserId, setEditingUserId] = useState("");
   const [editingName, setEditingName] = useState("");
   const [editingEmail, setEditingEmail] = useState("");
+  const [editingRole, setEditingRole] = useState("attendee");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState("");
@@ -581,21 +582,22 @@ function AdminPage({ onBack }) {
     setEditingUserId(user._id);
     setEditingName(user.name);
     setEditingEmail(user.email);
+    setEditingRole(user.role || "attendee");
   };
 
   const handleUpdateUser = async (e) => {
     e.preventDefault();
 
     await updateUser(editingUserId, {
-      name: editingName,
-      email: editingEmail,
+      role: editingRole,
     });
 
     setEditingUserId("");
     setEditingName("");
     setEditingEmail("");
+    setEditingRole("attendee");
     fetchUsers();
-    alert("User updated successfully");
+    alert("User role updated successfully");
   };
 
   const findUser = (userId) => users.find((user) => user._id === userId);
@@ -935,8 +937,8 @@ function AdminPage({ onBack }) {
                 <label>User Name</label>
                 <input 
                   value={editingName} 
-                  onChange={(e) => setEditingName(e.target.value)} 
-                  required 
+                  disabled
+                  className="readonly-input"
                 />
               </div>
 
@@ -945,18 +947,22 @@ function AdminPage({ onBack }) {
                 <input 
                   type="email" 
                   value={editingEmail} 
-                  onChange={(e) => setEditingEmail(e.target.value)} 
-                  required 
+                  disabled
+                  className="readonly-input"
                 />
               </div>
 
               <div className="form-group">
-                <label>Current Role</label>
-                <input 
-                  value={users.find((user) => user._id === editingUserId)?.role || "Select a user to edit"} 
-                  disabled 
-                  className="readonly-input"
-                />
+                <label>User Role</label>
+                <select
+                  value={editingRole}
+                  onChange={(e) => setEditingRole(e.target.value)}
+                  required
+                >
+                  <option value="admin">admin</option>
+                  <option value="organizer">organizer</option>
+                  <option value="attendee">attendee</option>
+                </select>
               </div>
 
               <div className="form-actions">
