@@ -440,6 +440,11 @@ import {
 } from "../services/bookingService";
 import { deleteReview, getReviews } from "../services/reviewService";
 import { getUsers, updateUser } from "../services/userService";
+import {
+  BOOKING_SERVICE_DEPLOYED,
+  EVENT_SERVICE_DEPLOYED,
+  REVIEW_SERVICE_DEPLOYED,
+} from "../config/deployedServices";
 
 function AdminPage({ onBack }) {
   const [activeService, setActiveService] = useState("events");
@@ -489,11 +494,18 @@ function AdminPage({ onBack }) {
   };
 
   useEffect(() => {
-    fetchEvents();
-    fetchBookings();
+    // TODO: flip flags in deployedServices.js when each microservice is behind the gateway
+    if (EVENT_SERVICE_DEPLOYED) {
+      fetchEvents();
+    }
+    if (BOOKING_SERVICE_DEPLOYED) {
+      fetchBookings();
+      fetchBanner();
+    }
     fetchUsers();
-    fetchReviews();
-    fetchBanner();
+    if (REVIEW_SERVICE_DEPLOYED) {
+      fetchReviews();
+    }
   }, []);
 
   const handleCreateEvent = async (e) => {

@@ -988,3 +988,17 @@ body {
     white-space: nowrap;
   }
 }
+
+.deploy-banner {
+  margin: 0.75rem 1.25rem 0;
+  padding: 0.65rem 1rem;
+  font-size: 0.9rem;
+  color: var(--ink-muted);
+  background: rgba(168, 92, 245, 0.08);
+  border: 1px solid var(--line-soft);
+  border-radius: 10px;
+}
+
+.deploy-banner code {
+  font-size: 0.82em;
+}

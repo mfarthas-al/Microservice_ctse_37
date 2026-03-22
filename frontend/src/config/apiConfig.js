@@ -1,23 +1,28 @@
 const trimTrailingSlash = (value) => (value || "").replace(/\/$/, "");
 
+const gateway = trimTrailingSlash(process.env.REACT_APP_API_GATEWAY_URL || "");
+
 /**
- * Production on Amplify (HTTPS): the browser blocks http:// API calls (mixed content).
+ * HTTPS pages (Amplify) cannot call http:// APIs. Use same-origin `/api/*` + Amplify rewrite
+ * to `http://<gateway>/api/<*>` (200), or set REACT_APP_API_GATEWAY_URL to https://...
  *
- * Option A — HTTPS on your gateway: set REACT_APP_API_GATEWAY_URL=https://your-domain
- *
- * Option B — Same-origin proxy (no TLS on EC2): set REACT_APP_RELATIVE_API=true
- * and in Amplify Console → Hosting → Rewrites and redirects add:
- *   Source: /api/<*>
- *   Target: http://13.126.11.22/api/<*>
- *   Type: Rewrite (200)
- *
- * Local dev: leave unset; uses REACT_APP_API_GATEWAY_URL or defaults below.
+ * Auto: production build + gateway URL is http:// → use relative `/api/...` (rewrite required).
+ * Opt out: REACT_APP_RELATIVE_API=false
  */
-const relativeApi =
+const explicitRelative =
   process.env.REACT_APP_RELATIVE_API === "true" ||
   process.env.REACT_APP_RELATIVE_API === "1";
 
-const gateway = trimTrailingSlash(process.env.REACT_APP_API_GATEWAY_URL || "");
+const relativeOptOut = process.env.REACT_APP_RELATIVE_API === "false";
+
+const autoRelativeForHttpGateway =
+  process.env.NODE_ENV === "production" &&
+  Boolean(gateway) &&
+  gateway.startsWith("http://");
+
+const relativeApi =
+  !relativeOptOut &&
+  (explicitRelative || autoRelativeForHttpGateway);
 
 export const eventApiUrl = relativeApi
   ? "/api/events"

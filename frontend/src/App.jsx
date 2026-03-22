@@ -22,6 +22,11 @@ import {
   logoutUser,
   refreshAccessToken,
 } from "./services/userService";
+import {
+  BOOKING_SERVICE_DEPLOYED,
+  EVENT_SERVICE_DEPLOYED,
+  REVIEW_SERVICE_DEPLOYED,
+} from "./config/deployedServices";
 import "./App.css";
 
 /** API may return a raw array or a wrapped payload { data: [...] }; proxies may vary. */
@@ -43,7 +48,9 @@ function App() {
   const [bannerImageUrl, setBannerImageUrl] = useState("");
   const userMenuRef = useRef(null);
 
+  // TODO: When EVENT_SERVICE_DEPLOYED — enable fetch + events UI (deployedServices.js)
   const fetchEvents = async () => {
+    if (!EVENT_SERVICE_DEPLOYED) return;
     try {
       const response = await getEvents();
       setEvents(asArray(response?.data));
@@ -52,7 +59,9 @@ function App() {
     }
   };
 
+  // TODO: When BOOKING_SERVICE_DEPLOYED — enable fetch + bookings UI (deployedServices.js)
   const fetchBookings = async () => {
+    if (!BOOKING_SERVICE_DEPLOYED) return;
     try {
       const response = await getBookings();
       setBookings(asArray(response?.data));
@@ -61,7 +70,9 @@ function App() {
     }
   };
 
+  // TODO: When BOOKING_SERVICE_DEPLOYED — banner uses booking-service (deployedServices.js)
   const fetchBanner = async () => {
+    if (!BOOKING_SERVICE_DEPLOYED) return;
     try {
       const response = await getBannerImage();
       setBannerImageUrl(response.data.imageUrl || "");
@@ -129,7 +140,9 @@ function App() {
       return;
     }
 
-    fetchBookings();
+    if (BOOKING_SERVICE_DEPLOYED) {
+      fetchBookings();
+    }
   }, [currentUser]);
 
   useEffect(() => {
@@ -284,6 +297,13 @@ function App() {
 
       <main className="main-content">
 
+        {(!EVENT_SERVICE_DEPLOYED || !BOOKING_SERVICE_DEPLOYED || !REVIEW_SERVICE_DEPLOYED) && (
+          <p className="deploy-banner" role="status">
+            Some features are off until microservices are deployed — see{" "}
+            <code>src/config/deployedServices.js</code>. Auth uses the API gateway only.
+          </p>
+        )}
+
         <section
           className="hero-banner"
           style={{
@@ -343,7 +363,11 @@ function App() {
             <p className="section-subtitle">Tap any card to reserve your seat instantly</p>
           </div>
 
-          {eventList.length === 0 ? (
+          {!EVENT_SERVICE_DEPLOYED ? (
+            <p className="empty-msg">
+              Event listings are disabled until the event service is deployed behind the gateway.
+            </p>
+          ) : eventList.length === 0 ? (
             <p className="empty-msg">No events available. Check back later!</p>
           ) : (
             <div className="events-grid">
@@ -385,7 +409,7 @@ function App() {
           </div>
         </section>
 
-        {selectedEvent && (
+        {EVENT_SERVICE_DEPLOYED && BOOKING_SERVICE_DEPLOYED && selectedEvent && (
           <BookingModal
             event={selectedEvent}
             currentUser={currentUser}
@@ -403,12 +427,20 @@ function App() {
             <h2 className="section-title">My Bookings</h2>
             <p className="section-subtitle">Manage your reservations in one place</p>
           </div>
-          <BookingList bookings={myBookings} refreshBookings={fetchBookings} />
+          {!BOOKING_SERVICE_DEPLOYED ? (
+            <p className="empty-msg">
+              Bookings are disabled until the booking service is deployed behind the gateway.
+            </p>
+          ) : (
+            <BookingList bookings={myBookings} refreshBookings={fetchBookings} />
+          )}
         </section>
 
-        <section className="content-section">
-          <EventReviews events={eventList} currentUser={currentUser} />
-        </section>
+        {EVENT_SERVICE_DEPLOYED && REVIEW_SERVICE_DEPLOYED && (
+          <section className="content-section">
+            <EventReviews events={eventList} currentUser={currentUser} />
+          </section>
+        )}
 
       </main>
 
