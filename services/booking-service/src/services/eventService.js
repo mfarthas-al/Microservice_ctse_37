@@ -1,6 +1,6 @@
 const axios = require("axios")
 
-const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL || "http://event-service:5001"
+const EVENT_SERVICE_URL = process.env.EVENT_SERVICE_URL || "http://event-service:3002"
 
 const getEventById = async (eventId, authorizationHeader) => {
 

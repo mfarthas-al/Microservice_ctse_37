@@ -22,11 +22,11 @@ services:
     env_file:
       - ./services/event-service/.env
     environment:
-      PORT: "5001"
+      PORT: "3002"
       # Inside Docker, localhost in .env points at this container — use service DNS names
-      AUTH_SERVICE_URL: http://user-management-service:5003
+      AUTH_SERVICE_URL: http://user-management-service:3001
     ports:
-      - "5001:5001"
+      - "3002:3002"
     restart: unless-stopped
 
   booking-service:
@@ -36,14 +36,14 @@ services:
     env_file:
       - ./services/booking-service/.env
     environment:
-      PORT: "5002"
-      EVENT_SERVICE_URL: http://event-service:5001
-      AUTH_SERVICE_URL: http://user-management-service:5003
+      PORT: "3003"
+      EVENT_SERVICE_URL: http://event-service:3002
+      AUTH_SERVICE_URL: http://user-management-service:3001
     depends_on:
       - event-service
       - user-management-service
     ports:
-      - "5002:5002"
+      - "3003:3003"
     restart: unless-stopped
 
   user-management-service:
@@ -53,9 +53,9 @@ services:
     env_file:
       - ./services/user-management-service/.env
     environment:
-      PORT: "5003"
+      PORT: "3001"
     ports:
-      - "5003:5003"
+      - "3001:3001"
     restart: unless-stopped
 
   customer-review-service:
@@ -65,16 +65,16 @@ services:
     env_file:
       - ./services/customer-review-service/.env
     environment:
-      PORT: "5004"
-      AUTH_SERVICE_URL: http://user-management-service:5003
-      EVENT_SERVICE_URL: http://event-service:5001
-      BOOKING_SERVICE_URL: http://booking-service:5002
+      PORT: "3004"
+      AUTH_SERVICE_URL: http://user-management-service:3001
+      EVENT_SERVICE_URL: http://event-service:3002
+      BOOKING_SERVICE_URL: http://booking-service:3003
     depends_on:
       - event-service
       - booking-service
       - user-management-service
     ports:
-      - "5004:5004"
+      - "3004:3004"
     restart: unless-stopped
 
   frontend:
