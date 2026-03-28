@@ -185,9 +185,9 @@ function App() {
   };
 
   const eventList = asArray(events);
-  const myBookings = currentUser
-    ? asArray(bookings).filter((booking) => booking.userId === (currentUser.id || currentUser._id))
-    : [];
+  // Booking service already scopes GET /api/bookings to the logged-in user (or all for admin).
+  // Do not filter again here — strict equality on userId vs profile id/_id often drops valid rows.
+  const myBookings = currentUser ? asArray(bookings) : [];
 
   const showcaseImages = [
     "/image/event1.jpg",
