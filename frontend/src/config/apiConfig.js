@@ -6,8 +6,12 @@ const gateway = trimTrailingSlash(process.env.REACT_APP_API_GATEWAY_URL || "");
  * HTTPS pages (Amplify) cannot call http:// APIs. Use same-origin `/api/*` + Amplify rewrite
  * to `http://<gateway>/api/<*>` (200), or set REACT_APP_API_GATEWAY_URL to https://...
  *
- * Auto: production build + gateway URL is http:// → use relative `/api/...` (rewrite required).
- * Opt out: REACT_APP_RELATIVE_API=false
+ * IMPORTANT:
+ * - Relative API (`/api/...`) ONLY works if your hosting layer rewrites `/api/*` to your gateway.
+ * - On Amplify, if you do not configure a rewrite, relative `/api/*` will hit the SPA origin and
+ *   often return `index.html` with 200, which looks like a "successful" request but has no tokens.
+ *
+ * We therefore only enable relative API when explicitly requested via REACT_APP_RELATIVE_API=true.
  */
 const explicitRelative =
   process.env.REACT_APP_RELATIVE_API === "true" ||
@@ -15,14 +19,7 @@ const explicitRelative =
 
 const relativeOptOut = process.env.REACT_APP_RELATIVE_API === "false";
 
-const autoRelativeForHttpGateway =
-  process.env.NODE_ENV === "production" &&
-  Boolean(gateway) &&
-  gateway.startsWith("http://");
-
-const relativeApi =
-  !relativeOptOut &&
-  (explicitRelative || autoRelativeForHttpGateway);
+const relativeApi = !relativeOptOut && explicitRelative;
 
 export const eventApiUrl = relativeApi
   ? "/api/events"
