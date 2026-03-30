@@ -10,6 +10,6 @@
  * - `/api/bookings` → booking-service
  * - `/api/reviews` → customer-review-service
  */
-export const EVENT_SERVICE_DEPLOYED = false;
+export const EVENT_SERVICE_DEPLOYED = true;
 export const BOOKING_SERVICE_DEPLOYED = true;
 export const REVIEW_SERVICE_DEPLOYED = false;
