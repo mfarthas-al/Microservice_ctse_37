@@ -35,7 +35,7 @@ function AuthPage({ onAuthenticated }) {
         onAuthenticated(authData.user);
       }
     } catch (error) {
-      alert(error.response?.data?.message || "Authentication failed");
+      alert(error.response?.data?.message || error.message || "Authentication failed");
     }
 
     setLoading(false);

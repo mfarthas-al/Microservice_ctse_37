@@ -32,7 +32,17 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (credentials) => {
   const response = await axios.post(`${API_URL}/login`, credentials);
-  return normalizeAuthResponse(response.data);
+  const normalized = normalizeAuthResponse(response.data);
+
+  // Defensive: if API_URL is misconfigured in production (e.g., points to the Amplify SPA),
+  // axios may receive HTML with 200 and we'd "log in" with empty tokens. Require a real token.
+  if (!normalized?.accessToken || !normalized?.user?.id) {
+    throw new Error(
+      "Login did not return tokens. Check REACT_APP_API_GATEWAY_URL / rewrites for /api/*."
+    );
+  }
+
+  return normalized;
 };
 
 export const refreshAccessToken = async (refreshToken) => {
