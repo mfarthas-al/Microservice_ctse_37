@@ -1,8 +1,8 @@
 import axios from "axios";
-import { reviewApiUrl } from "../config/apiConfig";
+import { reviewApiUrl, requireServiceUrl } from "../config/apiConfig";
 import { getAuthHeaders } from "./authStorage";
 
-const API_URL = reviewApiUrl;
+const API_URL = requireServiceUrl("Customer review service", reviewApiUrl);
 
 export const getReviews = async (eventId) => {
   return await axios.get(API_URL, { params: { eventId } });

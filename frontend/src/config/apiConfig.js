@@ -1,46 +1,91 @@
 const trimTrailingSlash = (value) => (value || "").replace(/\/$/, "");
 
-const gateway = trimTrailingSlash(process.env.REACT_APP_API_GATEWAY_URL || "");
+const readEnv = (...keys) => {
+  for (const key of keys) {
+    const value = process.env[key];
+    if (typeof value === "string" && value.trim() !== "") {
+      return value.trim();
+    }
+  }
+  return "";
+};
 
-/**
- * HTTPS pages (Amplify) cannot call http:// APIs. Use same-origin `/api/*` + Amplify rewrite
- * to `http://<gateway>/api/<*>` (200), or set REACT_APP_API_GATEWAY_URL to https://...
- *
- * IMPORTANT:
- * - Relative API (`/api/...`) ONLY works if your hosting layer rewrites `/api/*` to your gateway.
- * - On Amplify, if you do not configure a rewrite, relative `/api/*` will hit the SPA origin and
- *   often return `index.html` with 200, which looks like a "successful" request but has no tokens.
- *
- * We therefore only enable relative API when explicitly requested via REACT_APP_RELATIVE_API=true.
- */
-const explicitRelative =
-  process.env.REACT_APP_RELATIVE_API === "true" ||
-  process.env.REACT_APP_RELATIVE_API === "1";
+const boolFromEnv = (...keys) => {
+  const value = readEnv(...keys).toLowerCase();
+  if (!value) return undefined;
+  if (value === "true" || value === "1") return true;
+  if (value === "false" || value === "0") return false;
+  return undefined;
+};
 
-const relativeOptOut = process.env.REACT_APP_RELATIVE_API === "false";
+const asApiBase = (raw, suffix) => {
+  const value = trimTrailingSlash(raw);
+  if (!value) return "";
+  return value.endsWith(suffix) ? value : `${value}${suffix}`;
+};
 
-const relativeApi = !relativeOptOut && explicitRelative;
+// Future-ready: NEXT_PUBLIC_API_BASE_URL can later point to a shared ALB.
+const apiBase = trimTrailingSlash(
+  readEnv("NEXT_PUBLIC_API_BASE_URL", "REACT_APP_API_BASE_URL")
+);
 
-export const eventApiUrl = relativeApi
-  ? "/api/events"
-  : gateway
-  ? `${gateway}/api/events`
-  : process.env.REACT_APP_EVENT_API_URL || "http://localhost:3002/api/events";
+const authServiceBase = apiBase
+  ? `${apiBase}/api/auth`
+  : asApiBase(
+      readEnv("NEXT_PUBLIC_AUTH_SERVICE_URL", "REACT_APP_AUTH_SERVICE_URL"),
+      "/api/auth"
+    );
 
-export const bookingApiUrl = relativeApi
-  ? "/api/bookings"
-  : gateway
-  ? `${gateway}/api/bookings`
-  : process.env.REACT_APP_BOOKING_API_URL || "http://localhost:3003/api/bookings";
+const eventServiceBase = apiBase
+  ? `${apiBase}/api/events`
+  : asApiBase(
+      readEnv("NEXT_PUBLIC_EVENT_SERVICE_URL", "REACT_APP_EVENT_SERVICE_URL"),
+      "/api/events"
+    );
 
-export const authApiUrl = relativeApi
-  ? "/api/auth"
-  : gateway
-  ? `${gateway}/api/auth`
-  : process.env.REACT_APP_AUTH_API_URL || "http://localhost:3001/api/auth";
+const bookingServiceBase = apiBase
+  ? `${apiBase}/api/bookings`
+  : asApiBase(
+      readEnv("NEXT_PUBLIC_BOOKING_SERVICE_URL", "REACT_APP_BOOKING_SERVICE_URL"),
+      "/api/bookings"
+    );
 
-export const reviewApiUrl = relativeApi
-  ? "/api/reviews"
-  : gateway
-  ? `${gateway}/api/reviews`
-  : process.env.REACT_APP_REVIEW_API_URL || "http://localhost:3004/api/reviews";
+const reviewServiceBase = apiBase
+  ? `${apiBase}/api/reviews`
+  : asApiBase(
+      readEnv(
+        "NEXT_PUBLIC_CUSTOMER_REVIEW_SERVICE_URL",
+        "REACT_APP_CUSTOMER_REVIEW_SERVICE_URL",
+        "REACT_APP_REVIEW_SERVICE_URL"
+      ),
+      "/api/reviews"
+    );
+
+export const authApiUrl = authServiceBase;
+export const eventApiUrl = eventServiceBase;
+export const bookingApiUrl = bookingServiceBase;
+export const reviewApiUrl = reviewServiceBase;
+
+export const isAuthServiceConfigured = Boolean(authApiUrl);
+export const isEventServiceConfigured = Boolean(eventApiUrl);
+export const isBookingServiceConfigured = Boolean(bookingApiUrl);
+export const isReviewServiceConfigured = Boolean(reviewApiUrl);
+
+export const enableEventService =
+  boolFromEnv("NEXT_PUBLIC_ENABLE_EVENT_SERVICE", "REACT_APP_ENABLE_EVENT_SERVICE") ??
+  isEventServiceConfigured;
+export const enableBookingService =
+  boolFromEnv("NEXT_PUBLIC_ENABLE_BOOKING_SERVICE", "REACT_APP_ENABLE_BOOKING_SERVICE") ??
+  isBookingServiceConfigured;
+export const enableReviewService =
+  boolFromEnv("NEXT_PUBLIC_ENABLE_REVIEW_SERVICE", "REACT_APP_ENABLE_REVIEW_SERVICE") ??
+  isReviewServiceConfigured;
+
+export const requireServiceUrl = (serviceName, serviceUrl) => {
+  if (!serviceUrl) {
+    const error = new Error(`${serviceName} is not configured`);
+    error.code = "SERVICE_NOT_CONFIGURED";
+    throw error;
+  }
+  return serviceUrl;
+};

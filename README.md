@@ -109,5 +109,18 @@ Save booking in DB
 - If `docker compose up` fails with port `8080` already in use:
   - stop the process/container using `8080` or change the compose port mapping for `api-gateway`.
 
+### Frontend direct-service mode (no gateway dependency)
+- Frontend now supports direct service endpoints via env variables:
+  - `NEXT_PUBLIC_AUTH_SERVICE_URL`
+  - `NEXT_PUBLIC_EVENT_SERVICE_URL`
+  - `NEXT_PUBLIC_BOOKING_SERVICE_URL` (optional)
+  - `NEXT_PUBLIC_CUSTOMER_REVIEW_SERVICE_URL` (optional)
+- Current CRA builds also read fallback aliases:
+  - `REACT_APP_AUTH_SERVICE_URL`
+  - `REACT_APP_EVENT_SERVICE_URL`
+  - `REACT_APP_BOOKING_SERVICE_URL`
+  - `REACT_APP_CUSTOMER_REVIEW_SERVICE_URL`
+- Optional services (booking/reviews) are automatically disabled if their URLs are missing.
+
 
 

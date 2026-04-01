@@ -1,8 +1,8 @@
 import axios from "axios";
-import { bookingApiUrl } from "../config/apiConfig";
+import { bookingApiUrl, requireServiceUrl } from "../config/apiConfig";
 import { getAuthHeaders } from "./authStorage";
 
-const API_URL = bookingApiUrl;
+const API_URL = requireServiceUrl("Booking service", bookingApiUrl);
 
 export const createBooking = async (bookingData) => {
   return await axios.post(API_URL, bookingData, {

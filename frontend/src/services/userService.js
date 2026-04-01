@@ -1,8 +1,8 @@
 import axios from "axios";
-import { authApiUrl } from "../config/apiConfig";
+import { authApiUrl, requireServiceUrl } from "../config/apiConfig";
 import { getAuthHeaders } from "./authStorage";
 
-const API_URL = authApiUrl;
+const API_URL = requireServiceUrl("Auth service", authApiUrl);
 
 const normalizeAuthResponse = (responseData) => {
   const payload = responseData?.data || responseData;
@@ -38,7 +38,7 @@ export const loginUser = async (credentials) => {
   // axios may receive HTML with 200 and we'd "log in" with empty tokens. Require a real token.
   if (!normalized?.accessToken || !normalized?.user?.id) {
     throw new Error(
-      "Login did not return tokens. Check REACT_APP_API_GATEWAY_URL / rewrites for /api/*."
+      "Login did not return tokens. Check auth service URL env configuration."
     );
   }
 

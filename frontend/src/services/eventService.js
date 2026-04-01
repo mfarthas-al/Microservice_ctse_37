@@ -1,8 +1,8 @@
 import axios from "axios";
-import { eventApiUrl } from "../config/apiConfig";
+import { eventApiUrl, requireServiceUrl } from "../config/apiConfig";
 import { getAuthHeaders } from "./authStorage";
 
-const API_URL = eventApiUrl;
+const API_URL = requireServiceUrl("Event service", eventApiUrl);
 
 export const getEvents = async () => {
   return await axios.get(API_URL);

@@ -494,7 +494,7 @@ function AdminPage({ onBack }) {
   };
 
   useEffect(() => {
-    // TODO: flip flags in deployedServices.js when each microservice is behind the gateway
+    // TODO: keep service URLs/env flags in sync with live deployments.
     if (EVENT_SERVICE_DEPLOYED) {
       fetchEvents();
     }
@@ -762,8 +762,19 @@ function AdminPage({ onBack }) {
     </div>
   );
 
-  const renderBookingsSection = () => (
-    <div className="service-panel">
+  const renderBookingsSection = () => {
+    if (!BOOKING_SERVICE_DEPLOYED) {
+      return (
+        <div className="service-panel">
+          <div className="empty-state">
+            <p>Booking service is not configured for this environment.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="service-panel">
       <div className="service-header-row">
         <h2>Booking Management</h2>
         <span className="badge">{bookings.length} Total Bookings</span>
@@ -851,11 +862,23 @@ function AdminPage({ onBack }) {
           </table>
         </div>
       </div>
-    </div>
-  );
+      </div>
+    );
+  };
 
-  const renderReviewsSection = () => (
-    <div className="service-panel">
+  const renderReviewsSection = () => {
+    if (!REVIEW_SERVICE_DEPLOYED) {
+      return (
+        <div className="service-panel">
+          <div className="empty-state">
+            <p>Customer review service is not configured for this environment.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <div className="service-panel">
       <div className="service-header-row">
         <h2>Reviews Management</h2>
         <span className="badge">{reviews.length} Total Reviews</span>
@@ -891,8 +914,9 @@ function AdminPage({ onBack }) {
           );
         })}
       </div>
-    </div>
-  );
+      </div>
+    );
+  };
 
   const renderUsersSection = () => (
     <div className="service-panel">

@@ -300,7 +300,7 @@ function App() {
         {(!EVENT_SERVICE_DEPLOYED || !BOOKING_SERVICE_DEPLOYED || !REVIEW_SERVICE_DEPLOYED) && (
           <p className="deploy-banner" role="status">
             Some features are off until microservices are deployed — see{" "}
-            <code>src/config/deployedServices.js</code>. Auth uses the API gateway only.
+            <code>src/config/deployedServices.js</code> and service URL env variables.
           </p>
         )}
 
@@ -365,7 +365,7 @@ function App() {
 
           {!EVENT_SERVICE_DEPLOYED ? (
             <p className="empty-msg">
-              Event listings are disabled until the event service is deployed behind the gateway.
+              Event listings are disabled until the event service URL is configured.
             </p>
           ) : eventList.length === 0 ? (
             <p className="empty-msg">No events available. Check back later!</p>
@@ -429,7 +429,7 @@ function App() {
           </div>
           {!BOOKING_SERVICE_DEPLOYED ? (
             <p className="empty-msg">
-              Bookings are disabled until the booking service is deployed behind the gateway.
+              Bookings are disabled until the booking service URL is configured.
             </p>
           ) : (
             <BookingList bookings={myBookings} refreshBookings={fetchBookings} />
