@@ -1,5 +1,11 @@
 const trimTrailingSlash = (value) => (value || "").replace(/\/$/, "");
 
+/**
+ * CRA NOTE:
+ * This project is Create React App, so only `REACT_APP_*` variables are embedded at build-time.
+ * `NEXT_PUBLIC_*` is kept for future portability, but it will be undefined in CRA builds unless
+ * you migrate frameworks/build tooling.
+ */
 const readEnv = (...keys) => {
   for (const key of keys) {
     const value = process.env[key];
@@ -24,29 +30,29 @@ const asApiBase = (raw, suffix) => {
   return value.endsWith(suffix) ? value : `${value}${suffix}`;
 };
 
-// Future-ready: NEXT_PUBLIC_API_BASE_URL can later point to a shared ALB.
+// Future-ready: API_BASE_URL can later point to a shared ALB.
 const apiBase = trimTrailingSlash(
-  readEnv("NEXT_PUBLIC_API_BASE_URL", "REACT_APP_API_BASE_URL")
+  readEnv("REACT_APP_API_BASE_URL", "NEXT_PUBLIC_API_BASE_URL")
 );
 
 const authServiceBase = apiBase
   ? `${apiBase}/api/auth`
   : asApiBase(
-      readEnv("NEXT_PUBLIC_AUTH_SERVICE_URL", "REACT_APP_AUTH_SERVICE_URL"),
+      readEnv("REACT_APP_AUTH_SERVICE_URL", "NEXT_PUBLIC_AUTH_SERVICE_URL"),
       "/api/auth"
     );
 
 const eventServiceBase = apiBase
   ? `${apiBase}/api/events`
   : asApiBase(
-      readEnv("NEXT_PUBLIC_EVENT_SERVICE_URL", "REACT_APP_EVENT_SERVICE_URL"),
+      readEnv("REACT_APP_EVENT_SERVICE_URL", "NEXT_PUBLIC_EVENT_SERVICE_URL"),
       "/api/events"
     );
 
 const bookingServiceBase = apiBase
   ? `${apiBase}/api/bookings`
   : asApiBase(
-      readEnv("NEXT_PUBLIC_BOOKING_SERVICE_URL", "REACT_APP_BOOKING_SERVICE_URL"),
+      readEnv("REACT_APP_BOOKING_SERVICE_URL", "NEXT_PUBLIC_BOOKING_SERVICE_URL"),
       "/api/bookings"
     );
 
@@ -54,9 +60,9 @@ const reviewServiceBase = apiBase
   ? `${apiBase}/api/reviews`
   : asApiBase(
       readEnv(
-        "NEXT_PUBLIC_CUSTOMER_REVIEW_SERVICE_URL",
         "REACT_APP_CUSTOMER_REVIEW_SERVICE_URL",
-        "REACT_APP_REVIEW_SERVICE_URL"
+        "REACT_APP_REVIEW_SERVICE_URL",
+        "NEXT_PUBLIC_CUSTOMER_REVIEW_SERVICE_URL"
       ),
       "/api/reviews"
     );
@@ -88,4 +94,15 @@ export const requireServiceUrl = (serviceName, serviceUrl) => {
     throw error;
   }
   return serviceUrl;
+};
+
+export const appRuntimeConfig = {
+  apiBase,
+  authApiUrl,
+  eventApiUrl,
+  bookingApiUrl,
+  reviewApiUrl,
+  enableEventService,
+  enableBookingService,
+  enableReviewService,
 };

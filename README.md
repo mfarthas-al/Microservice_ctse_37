@@ -111,16 +111,15 @@ Save booking in DB
 
 ### Frontend direct-service mode (no gateway dependency)
 - Frontend now supports direct service endpoints via env variables:
-  - `NEXT_PUBLIC_AUTH_SERVICE_URL`
-  - `NEXT_PUBLIC_EVENT_SERVICE_URL`
-  - `NEXT_PUBLIC_BOOKING_SERVICE_URL` (optional)
-  - `NEXT_PUBLIC_CUSTOMER_REVIEW_SERVICE_URL` (optional)
-- Current CRA builds also read fallback aliases:
   - `REACT_APP_AUTH_SERVICE_URL`
   - `REACT_APP_EVENT_SERVICE_URL`
   - `REACT_APP_BOOKING_SERVICE_URL`
   - `REACT_APP_CUSTOMER_REVIEW_SERVICE_URL`
 - Optional services (booking/reviews) are automatically disabled if their URLs are missing.
+
+**CRA/Amplify note**: this frontend is Create React App, so only env vars prefixed with `REACT_APP_`
+are embedded into the static build. `NEXT_PUBLIC_*` variables will be ignored unless you migrate
+framework/tooling.
 
 
 
